@@ -1,4 +1,5 @@
-import type { MetaFunction } from "@remix-run/cloudflare";
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
+import { useLoaderData } from "@remix-run/react";
 
 export const meta: MetaFunction = () => {
   return [
@@ -7,7 +8,15 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export const loader = (args: LoaderFunctionArgs) => {
+  const extra = args.context.extra;
+  const cloudflare = args.context.cloudflare;
+  return { extra, cloudflare };
+};
+
 export default function Index() {
+  const { cloudflare, extra } = useLoaderData<typeof loader>();
+
   return (
     <div className="flex h-screen items-center justify-center">
       <div className="flex flex-col items-center gap-16">
@@ -15,14 +24,21 @@ export default function Index() {
           <h1 className="leading text-2xl font-bold text-gray-800 dark:text-gray-100">
             Welcome to <span className="sr-only">Remix</span>
           </h1>
+          <h2>Var is {cloudflare.env.MY_VAR}</h2>
+          <h3>
+            {cloudflare.cf ? "cf," : ""}
+            {cloudflare.ctx ? "ctx," : ""}
+            {cloudflare.caches ? "caches are available" : ""}
+          </h3>
+          <h2>Extra is {extra}</h2>
           <div className="h-[144px] w-[434px]">
             <img
-              src="/logo-light.png"
+              src="/assets/logo-light.png"
               alt="Remix"
               className="block w-full dark:hidden"
             />
             <img
-              src="/logo-dark.png"
+              src="/assets/logo-dark.png"
               alt="Remix"
               className="hidden w-full dark:block"
             />

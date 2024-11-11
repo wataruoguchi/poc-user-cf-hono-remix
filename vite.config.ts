@@ -39,14 +39,14 @@ export default defineConfig(({ mode }) => ({
    * https://github.com/remix-run/remix/issues/9245#issuecomment-2179517678
    * https://vite.dev/config/ssr-options.html#ssr-noexternal
    */
-  ssr: {
-    noExternal: ["postgres"],
-  },
-  resolve: {
-    alias: {
-      ...(mode === "development" && {
-        postgres: path.resolve(__dirname, "node_modules/postgres/src/index.js"),
-      }),
+  ...(mode === "development" && {
+    ssr: {
+      noExternal: ["postgres"],
     },
-  },
+    resolve: {
+      alias: {
+        postgres: path.resolve(__dirname, "node_modules/postgres/src/index.js"),
+      },
+    },
+  }),
 }));

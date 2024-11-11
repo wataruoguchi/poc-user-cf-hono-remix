@@ -15,19 +15,17 @@ export class WorkerDb {
   static async getInstance(
     env: Pick<Env, "SUPABASE_URI">
   ): Promise<Kysely<DB>> {
-    if (!this.instance) {
-      const pg = postgres(env.SUPABASE_URI);
-      /**
-       * The following line is to check if the connection is successful.
-       */
-      await pg.unsafe("SELECT 1");
+    const pg = postgres(env.SUPABASE_URI);
+    /**
+     * The following line is to check if the connection is successful.
+     */
+    await pg.unsafe("SELECT 1");
 
-      this.instance = new Kysely<DB>({
-        dialect: new PostgresJSDialect({
-          postgres: pg,
-        }),
-      });
-    }
+    this.instance = new Kysely<DB>({
+      dialect: new PostgresJSDialect({
+        postgres: pg,
+      }),
+    });
     return this.instance;
   }
 }

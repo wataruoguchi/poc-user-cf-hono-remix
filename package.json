@@ -4,14 +4,14 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "build": "remix vite:build",
-    "deploy": "pnpm run build && wrangler pages deploy",
+    "build": "remix vite:build && wrangler pages functions build --outdir build/worker",
+    "deploy": "pnpm run build && wrangler deploy",
     "dev": "remix vite:dev",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "wrangler pages dev ./build/client",
     "typecheck": "tsc",
     "typegen": "wrangler types",
-    "preview": "pnpm run build && wrangler pages dev",
+    "preview": "pnpm run build && wrangler dev",
     "cf-typegen": "wrangler types",
     "supabase:login": "pnpx supabase login",
     "supabase:gen": "pnpx supabase gen types --lang=typescript --project-id $SUPABASE_PROJECT_REF --schema public > db/supabase.types.ts",
@@ -32,7 +32,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240512.0",
+    "@cloudflare/workers-types": "^4.20241106.0",
     "@hono/vite-dev-server": "^0.16.0",
     "@remix-run/dev": "^2.13.1",
     "@types/react": "^18.2.20",
@@ -55,7 +55,7 @@
     "typescript": "^5.1.6",
     "vite": "^5.1.0",
     "vite-tsconfig-paths": "^4.2.1",
-    "wrangler": "3.57.1"
+    "wrangler": "3.86.1"
   },
   "engines": {
     "node": ">=20.0.0"

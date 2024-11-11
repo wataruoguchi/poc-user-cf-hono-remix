@@ -2,7 +2,11 @@
 name = "poc-user-cf-hono-remix-kysely-supabase"
 compatibility_date = "2024-11-06"
 compatibility_flags = ["nodejs_compat_v2"]
-pages_build_output_dir = "./build/client"
+main = "./build/worker/index.js"
+
+[assets]
+directory = "./build/client"
+binding = "ASSETS"
 
 # Automatically place your workloads in an optimal location to minimize latency.
 # If you are running back-end logic in a Pages Function, running it closer to your back-end infrastructure

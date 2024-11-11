@@ -3,10 +3,6 @@
 import { type AppLoadContext } from "@remix-run/cloudflare";
 import { type PlatformProxy } from "wrangler";
 
-interface Env {
-  MY_VAR: string;
-}
-
 type Cloudflare = Omit<PlatformProxy<Env>, "dispose">;
 
 declare module "@remix-run/cloudflare" {
@@ -23,6 +19,6 @@ type GetLoadContext = (args: {
 export const getLoadContext: GetLoadContext = ({ context }) => {
   return {
     ...context,
-    extra: 'stuff'
+    extra: "stuff",
   };
 };

@@ -18,10 +18,9 @@ export class WorkerDb {
     if (!this.instance) {
       const pg = postgres(env.SUPABASE_URI);
       /**
-       * The following two lines are to check if the connection is successful.
+       * The following line is to check if the connection is successful.
        */
-      const reserved = await pg.reserve();
-      await reserved.unsafe("SELECT 1");
+      await pg.unsafe("SELECT 1");
 
       this.instance = new Kysely<DB>({
         dialect: new PostgresJSDialect({

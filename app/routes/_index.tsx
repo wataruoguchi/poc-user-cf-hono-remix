@@ -14,7 +14,7 @@ export const loader = async (args: LoaderFunctionArgs) => {
   const cloudflare = args.context.cloudflare;
   const db = await WorkerDb.getInstance(cloudflare.env);
   const nOfUsers = await db
-    ?.selectFrom("person")
+    .selectFrom("person")
     .select(({ fn }) => [fn.countAll<number>().as("count")])
     .executeTakeFirst();
   return { extra, cloudflare, nOfUsers };

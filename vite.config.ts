@@ -34,8 +34,11 @@ export default defineConfig(({ mode }) => ({
     }),
     tsconfigPaths(),
   ],
-  // After resolving https://github.com/porsager/postgres/issues/923 by editing raw JS, I faced the following issue.
-  // https://github.com/remix-run/remix/issues/9245#issuecomment-2179517678
+  /**
+   * In development, we need to use Node.js's postgres package instead of the cloudflare one.
+   * https://github.com/remix-run/remix/issues/9245#issuecomment-2179517678
+   * https://vite.dev/config/ssr-options.html#ssr-noexternal
+   */
   ssr: {
     noExternal: ["postgres"],
   },

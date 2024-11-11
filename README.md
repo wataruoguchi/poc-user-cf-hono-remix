@@ -1,47 +1,29 @@
-# Welcome to Remix + Cloudflare!
+# PoC - User
 
-- 📖 [Remix docs](https://remix.run/docs)
-- 📖 [Remix Cloudflare docs](https://remix.run/guides/vite#cloudflare)
+## Key Frameworks and Libraries
 
-## Development
+- Hono
+- Remix
+- Kysely
+- Supabase
 
-Run the dev server:
+## Steps
 
-```sh
-npm run dev
-```
+1. [x] Integrate Hono and Remix by installing `hono-remix-adapter`
+1. [ ] Integrate Supabase via Kysely
 
-To run Wrangler:
+## Logs
 
-```sh
-npm run build
-npm run start
-```
-
-## Typegen
-
-Generate types for your Cloudflare bindings in `wrangler.toml`:
+### Supabase x Kysely
 
 ```sh
-npm run typegen
+pnpx supabase login
+pnpx supabase init
+pnpx supabase gen types --lang=typescript --project-id <prject ref, like `abcdefghijklmnopqrst`> --schema public > db/supabase.types.ts
+# At this point, the database has no user-defined tables.
+pnpm run migrate -- create user # Run `kysely-migration-cli` internally.
+pnpm run migrate -- up # It created the `user` table on Supabase!
+pnpx supabase gen types --lang=typescript --project-id <prject ref, like `abcdefghijklmnopqrst`> --schema public > db/supabase.types.ts # Update the type declaration. We don't need to depend on `kysely-codegen`
 ```
 
-You will need to rerun typegen whenever you make changes to `wrangler.toml`.
-
-## Deployment
-
-First, build your app for production:
-
-```sh
-npm run build
-```
-
-Then, deploy your app to Cloudflare Pages:
-
-```sh
-npm run deploy
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever css framework you prefer. See the [Vite docs on css](https://vitejs.dev/guide/features.html#css) for more information.
+- <https://supabase.com/docs/guides/deployment/managing-environments>

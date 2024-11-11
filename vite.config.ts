@@ -4,6 +4,7 @@ import {
   cloudflareDevProxyVitePlugin as remixCloudflareDevProxy,
 } from "@remix-run/dev";
 import serverAdapter from "hono-remix-adapter/vite";
+import path from "node:path";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { getLoadContext } from "./load-context";
@@ -14,7 +15,7 @@ declare module "@remix-run/cloudflare" {
   }
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     remixCloudflareDevProxy(),
     remix({
@@ -33,4 +34,19 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
-});
+  /**
+   * In development, we need to use Node.js's postgres package instead of the cloudflare one.
+   * https://github.com/remix-run/remix/issues/9245#issuecomment-2179517678
+   * https://vite.dev/config/ssr-options.html#ssr-noexternal
+   */
+  ssr: {
+    noExternal: ["postgres"],
+  },
+  resolve: {
+    alias: {
+      ...(mode === "development" && {
+        postgres: path.resolve(__dirname, "node_modules/postgres/src/index.js"),
+      }),
+    },
+  },
+}));

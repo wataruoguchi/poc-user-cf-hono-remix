@@ -1,5 +1,6 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
+import { WorkerDb } from "lib/db";
 
 export const meta: MetaFunction = () => {
   return [
@@ -8,14 +9,19 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export const loader = (args: LoaderFunctionArgs) => {
+export const loader = async (args: LoaderFunctionArgs) => {
   const extra = args.context.extra;
   const cloudflare = args.context.cloudflare;
-  return { extra, cloudflare };
+  const db = await WorkerDb.getInstance(cloudflare.env);
+  const nOfUsers = await db
+    .selectFrom("person")
+    .select(({ fn }) => [fn.countAll<number>().as("count")])
+    .executeTakeFirst();
+  return { extra, cloudflare, nOfUsers };
 };
 
 export default function Index() {
-  const { cloudflare, extra } = useLoaderData<typeof loader>();
+  const { cloudflare, extra, nOfUsers } = useLoaderData<typeof loader>();
 
   return (
     <div className="flex h-screen items-center justify-center">
@@ -24,6 +30,7 @@ export default function Index() {
           <h1 className="leading text-2xl font-bold text-gray-800 dark:text-gray-100">
             Welcome to <span className="sr-only">Remix</span>
           </h1>
+          <h2>Number of users: {nOfUsers ? nOfUsers.count : "unknown"}</h2>
           <h2>Var is {cloudflare.env.MY_VAR}</h2>
           <h3>
             {cloudflare.cf ? "cf," : ""}

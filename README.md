@@ -26,6 +26,7 @@ pnpx supabase gen types --lang=typescript --project-id <prject ref, like `abcdef
 # At this point, the database has no user-defined tables.
 pnpm run migrate -- create user # Run `kysely-migration-cli` internally.
 pnpm run migrate -- up # It created the `user` table on Supabase!
+pnpx supabase pull # Update the migration files under `supabase/migrations`
 pnpx supabase gen types --lang=typescript --project-id <prject ref, like `abcdefghijklmnopqrst`> --schema public > db/supabase.types.ts # Update the type declaration. We don't need to depend on `kysely-codegen`
 ```
 

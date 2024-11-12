@@ -23,7 +23,7 @@
     "@remix-run/react": "^2.13.1",
     "@supabase/supabase-js": "^2.46.1",
     "hono": "^4.6.9",
-    "hono-remix-adapter": "^0.3.0",
+    "hono-remix-adapter": "^0.4.1",
     "isbot": "^4.1.0",
     "kysely": "^0.27.4",
     "kysely-postgres-js": "^2.0.0",

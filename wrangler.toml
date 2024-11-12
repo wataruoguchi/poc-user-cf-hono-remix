@@ -2,7 +2,7 @@
 name = "poc-user-cf-hono-remix-kysely-supabase"
 compatibility_date = "2024-11-06"
 compatibility_flags = ["nodejs_compat_v2"]
-main = "./build/worker/index.js"
+main = "./worker.ts"
 
 [assets]
 directory = "./build/client"

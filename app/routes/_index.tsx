@@ -40,12 +40,12 @@ export default function Index() {
           <h2>Extra is {extra}</h2>
           <div className="h-[144px] w-[434px]">
             <img
-              src="/assets/logo-light.png"
+              src="/logo-light.png"
               alt="Remix"
               className="block w-full dark:hidden"
             />
             <img
-              src="/assets/logo-dark.png"
+              src="/logo-dark.png"
               alt="Remix"
               className="hidden w-full dark:block"
             />

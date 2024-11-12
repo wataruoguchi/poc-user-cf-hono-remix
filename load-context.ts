@@ -8,6 +8,7 @@ type Cloudflare = Omit<PlatformProxy<Env>, "dispose">;
 declare module "@remix-run/cloudflare" {
   interface AppLoadContext {
     cloudflare: Cloudflare;
+    extra: string; // It does not cause a type error even if it is not defined. It gets unknown type: `AppLoadContext[string]: unknown`
   }
 }
 type GetLoadContext = (args: {

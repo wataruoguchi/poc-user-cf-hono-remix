@@ -9,8 +9,11 @@
 
 ## Steps
 
-1. [x] Integrate Hono and Remix by installing `hono-remix-adapter`
-1. [ ] Integrate Supabase via Kysely
+- [x] Integrate Hono and Remix by installing `hono-remix-adapter`
+- [x] Integrate Supabase via Kysely
+- [x] Migrate from Cloudflare Pages to Cloudflare Workers
+- [ ] Build self-managed login, user roles, and user sessions based on [EpicWeb](https://www.epicweb.dev/)
+- [ ] Oauth (GitHub)
 
 ## Logs
 

@@ -13,10 +13,23 @@ import { HoneypotProvider } from "remix-utils/honeypot/react";
 import "./tailwind.css";
 import { honeypot } from "./utils/honeypot.server";
 import { getEnv } from "./utils/env.server";
+import { getUserId } from "./utils/auth.sever";
+import { WorkerDb } from "lib/db";
 
-export async function loader({ context }: LoaderFunctionArgs) {
+export async function loader({ context, request }: LoaderFunctionArgs) {
   const honeyProps = honeypot.getInputProps();
+  const userId = await getUserId(context.cloudflare.env, request);
+  const db = await WorkerDb.getInstance(context.cloudflare.env);
+  // TODO: Maybe better cache this.
+  const user = userId
+    ? await db
+        .selectFrom("person")
+        .where("id", "=", userId)
+        .select(["id", "username"])
+        .executeTakeFirst()
+    : null;
   return json({
+    user,
     env: getEnv(context.cloudflare.env),
     honeyProps,
   });
@@ -36,7 +49,7 @@ export const links: LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const { env } = useLoaderData<typeof loader>();
+  const { env, user } = useLoaderData<typeof loader>();
   return (
     <html lang="en">
       <head>
@@ -46,6 +59,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
+        {user ? <div>Logged in as {user.username}</div> : null}
         {children}
         <script
           dangerouslySetInnerHTML={{

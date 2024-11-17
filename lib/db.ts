@@ -9,6 +9,9 @@ import postgres from "postgres";
 import { type Database } from "../db/supabase.types";
 
 type DB = KyselifyDatabase<Database>;
+
+export type WorkerDB = Kysely<DB>;
+
 export class WorkerDb {
   private static instance: Kysely<DB> | null = null;
 

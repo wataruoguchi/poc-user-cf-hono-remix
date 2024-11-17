@@ -16,6 +16,9 @@ import { PasswordSchema, UsernameSchema } from "~/utils/user-validation.ts";
 import { GeneralErrorBoundary } from "~/components/error-boundary.tsx";
 import { Spacer } from "~/components/spacer.tsx";
 import { login } from "~/utils/auth.sever";
+import { handleNewSession } from "./login.server";
+import { getAuthSessionStorage } from "~/utils/session.server";
+import { WorkerDb } from "lib/db";
 
 const LoginFormSchema = z.object({
   username: UsernameSchema,
@@ -31,15 +34,16 @@ export async function loader() {
 export async function action({ request, context }: ActionFunctionArgs) {
   const formData = await request.formData();
   checkHoneypot(formData);
+  const {
+    cloudflare: { env },
+  } = context;
   const submission = await parseWithZod(formData, {
     schema: (intent) =>
       LoginFormSchema.transform(async (data, ctx) => {
         if (intent !== null) return { ...data, session: null };
 
-        const {
-          cloudflare: { env },
-        } = context;
-        const session = await login(env, data);
+        const db = await WorkerDb.getInstance(env);
+        const session = await login(db, data);
         if (!session) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
@@ -59,15 +63,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
     );
   }
 
-  return json({ result: submission });
-  // const { session, remember, redirectTo } = submission.value;
-
-  // return handleNewSession({
-  //   request,
-  //   session,
-  //   remember: remember ?? false,
-  //   redirectTo,
-  // });
+  const { session, remember, redirectTo } = submission.value;
+  const patchyDate = new Date(); // TODO: Use expirationDate from the database
+  patchyDate.setDate(patchyDate.getDate() + 100);
+  return handleNewSession(getAuthSessionStorage(env), {
+    request,
+    session: { id: session.id, expirationDate: patchyDate },
+    remember: remember ?? false,
+    redirectTo,
+  });
 }
 
 export default function LoginPage() {

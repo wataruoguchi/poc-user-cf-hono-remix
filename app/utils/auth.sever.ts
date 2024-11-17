@@ -1,7 +1,9 @@
-import { WorkerDb } from "lib/db";
+import { WorkerDB } from "lib/db";
+
+export const sessionKey = "sessionId";
 
 export async function login(
-  env: Env,
+  db: WorkerDB,
   {
     username,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -11,11 +13,11 @@ export async function login(
     password: string;
   }
 ) {
-  const db = await WorkerDb.getInstance(env);
   const user = await db
     .selectFrom("person")
     .where("username", "=", username)
     .selectAll()
     .executeTakeFirst();
+  // TODO: Return a session, not a user
   return user ? user : null;
 }

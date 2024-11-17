@@ -28,4 +28,10 @@ export class WorkerDb {
     });
     return this.instance;
   }
+
+  static async close() {
+    if (this.instance) {
+      await this.instance.destroy();
+    }
+  }
 }

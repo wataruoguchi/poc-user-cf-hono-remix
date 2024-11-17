@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import { WorkerDb } from "lib/db";
 
 export const meta: MetaFunction = () => {
@@ -25,6 +25,9 @@ export default function Index() {
 
   return (
     <div className="flex h-screen items-center justify-center">
+      <div>
+        <Link to="/login">Log In</Link>
+      </div>
       <div className="flex flex-col items-center gap-16">
         <header className="flex flex-col items-center gap-9">
           <h1 className="leading text-2xl font-bold text-gray-800 dark:text-gray-100">

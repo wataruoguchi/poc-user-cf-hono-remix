@@ -33,14 +33,14 @@ async function seed() {
     .values([
       {
         id: crypto.randomUUID(),
-        username: "Wataru",
+        username: "wataru",
         email: "wataru@hey.com",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
       ...Array.from({ length: 10 }).map(() => ({
         id: crypto.randomUUID(),
-        username: faker.internet.username(),
+        username: faker.internet.username().toLowerCase(),
         email: faker.internet.email(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

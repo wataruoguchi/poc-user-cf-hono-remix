@@ -1,13 +1,26 @@
-import type { LinksFunction } from "@remix-run/cloudflare";
+import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import {
+  json,
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
+import { HoneypotProvider } from "remix-utils/honeypot/react";
 
 import "./tailwind.css";
+import { honeypot } from "./utils/honeypot.server";
+import { getEnv } from "./utils/env.server";
+
+export async function loader({ context }: LoaderFunctionArgs) {
+  const honeyProps = honeypot.getInputProps();
+  return json({
+    env: getEnv(context.cloudflare.env),
+    honeyProps,
+  });
+}
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -23,6 +36,7 @@ export const links: LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const { env } = useLoaderData<typeof loader>();
   return (
     <html lang="en">
       <head>
@@ -33,6 +47,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(env)}`,
+          }}
+        />
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -40,6 +59,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function App() {
+function App() {
   return <Outlet />;
+}
+
+export default function AppWithProviders() {
+  const data = useLoaderData<typeof loader>();
+  return (
+    <HoneypotProvider {...data.honeyProps}>
+      <App />
+    </HoneypotProvider>
+  );
 }

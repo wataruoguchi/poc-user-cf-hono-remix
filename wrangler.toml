@@ -22,6 +22,7 @@ binding = "ASSETS"
 # - https://developers.cloudflare.com/pages/functions/bindings/#secrets
 [vars]
 MY_VAR = "My var in wrangler.toml"
+ENVIRONMENT = "development"
 
 # Bind the Workers AI model catalog. Run machine learning models, powered by serverless GPUs, on Cloudflare’s global network
 # Docs: https://developers.cloudflare.com/pages/functions/bindings/#workers-ai
@@ -73,7 +74,8 @@ MY_VAR = "My var in wrangler.toml"
 
 ######## PREVIEW environment config ########
 
-# [env.preview.vars]
+[env.preview.vars]
+ENVIRONMENT = "preview"
 # API_KEY = "xyz789"
 
 # [[env.preview.kv_namespaces]]
@@ -82,7 +84,8 @@ MY_VAR = "My var in wrangler.toml"
 
 ######## PRODUCTION environment config ########
 
-# [env.production.vars]
+[env.production.vars]
+ENVIRONMENT = "production"
 # API_KEY = "abc123"
 
 # [[env.production.kv_namespaces]]

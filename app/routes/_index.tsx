@@ -25,8 +25,9 @@ export default function Index() {
 
   return (
     <div className="flex h-screen items-center justify-center">
-      <div>
+      <div className="flex flex-col items-center gap-4">
         <Link to="/login">Log In</Link>
+        <Link to="/signup">Sign Up</Link>
       </div>
       <div className="flex flex-col items-center gap-16">
         <header className="flex flex-col items-center gap-9">

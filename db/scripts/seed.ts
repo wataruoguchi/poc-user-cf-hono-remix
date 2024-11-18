@@ -1,4 +1,4 @@
-import { faker } from "@faker-js/faker";
+import { createPassword, createUser } from "tests/db-utils";
 import { WorkerDb } from "../../lib/db";
 
 const SUPABASE_URI = process.env.SUPABASE_URI;
@@ -26,24 +26,30 @@ async function seed() {
   console.time(`🌱 Database has been seeded`);
   // Delete existing records (optional)
   await db.deleteFrom("person").execute();
+  await db.deleteFrom("password").execute();
 
-  // Insert sample data
+  const randomUsers = Array.from({ length: 10 }).map(() => createUser());
+  const wataru = {
+    id: crypto.randomUUID(),
+    username: "wataru",
+    email: "wataru@hey.com",
+  };
+
   await db
     .insertInto("person")
+    .values([wataru, ...randomUsers])
+    .execute();
+
+  await db
+    .insertInto("password")
     .values([
       {
-        id: crypto.randomUUID(),
-        username: "wataru",
-        email: "wataru@hey.com",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        hash: createPassword("password").hash,
+        person_id: wataru.id,
       },
-      ...Array.from({ length: 10 }).map(() => ({
-        id: crypto.randomUUID(),
-        username: faker.internet.username().toLowerCase(),
-        email: faker.internet.email(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+      ...randomUsers.map((user) => ({
+        hash: createPassword(user.username).hash,
+        person_id: user.id,
       })),
     ])
     .execute();

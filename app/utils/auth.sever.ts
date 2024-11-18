@@ -1,5 +1,6 @@
 import { redirect } from "@remix-run/cloudflare";
-import { WorkerDb, WorkerDB } from "lib/db";
+import bcrypt from "bcryptjs";
+import { Person, WorkerDb, WorkerDB } from "lib/db";
 import { getAuthSessionStorage } from "./session.server";
 
 export const sessionKey = "sessionId";
@@ -31,18 +32,46 @@ export async function login(
   db: WorkerDB,
   {
     username,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     password,
   }: {
-    username: string;
+    username: Person["username"];
     password: string;
   }
 ) {
+  // TODO: Loop up session table
   const user = await db
     .selectFrom("person")
     .where("username", "=", username)
     .selectAll()
     .executeTakeFirst();
+  if (!user) return null;
+  const isValid = await verifyUserPassword(db, { id: user.id }, password);
   // TODO: Return a session, not a user
-  return user ? user : null;
+  return user && isValid ? user : null;
+}
+
+export async function verifyUserPassword(
+  db: WorkerDB,
+  where: Pick<Person, "id">,
+  password: string
+) {
+  // TODO: Join with person table. Support looking up by username as well.
+  const passwordForPersonId = await db
+    .selectFrom("password")
+    .where("person_id", "=", where.id)
+    .select("hash")
+    .executeTakeFirst();
+
+  if (!passwordForPersonId || !passwordForPersonId.hash) {
+    return null;
+  }
+
+  // TODO: Add rate limiting.
+  const isValid = await bcrypt.compare(password, passwordForPersonId.hash);
+
+  if (!isValid) {
+    return null;
+  }
+
+  return { id: where.id };
 }

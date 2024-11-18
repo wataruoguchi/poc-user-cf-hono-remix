@@ -30,7 +30,7 @@ pnpm run migrate -- up # It created the `user` table on Supabase!
 # pnpx supabase pull # Update the migration files under `supabase/migrations`
 # pnpm run supabase:gen # Update the type declaration. We don't need to depend on `kysely-codegen`
 pnpm run generate-dotenv-for-ky-typegen # Only once. It generates the `.env` file that has to be used by only kysely-codegen
-pnpm run ky-codegen
+pnpm run ky-typegen
 ```
 
 - <https://supabase.com/docs/guides/deployment/managing-environments>

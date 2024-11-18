@@ -26,7 +26,6 @@ async function seed() {
   console.time(`🌱 Database has been seeded`);
   // Delete existing records (optional)
   await db.deleteFrom("person").execute();
-  await db.deleteFrom("password").execute();
 
   const randomUsers = Array.from({ length: 10 }).map(() => createUser());
   const wataru = {

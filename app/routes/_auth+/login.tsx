@@ -2,6 +2,7 @@ import { getFormProps, getInputProps, useForm } from "@conform-to/react";
 import { getZodConstraint, parseWithZod } from "@conform-to/zod";
 import {
   json,
+  LoaderFunctionArgs,
   type ActionFunctionArgs,
   type MetaFunction,
 } from "@remix-run/cloudflare";
@@ -15,7 +16,7 @@ import { useIsPending } from "~/utils/misc.ts";
 import { PasswordSchema, UsernameSchema } from "~/utils/user-validation.ts";
 import { GeneralErrorBoundary } from "~/components/error-boundary.tsx";
 import { Spacer } from "~/components/spacer.tsx";
-import { login } from "~/utils/auth.server.ts";
+import { login, requireAnonymous } from "~/utils/auth.server.ts";
 import { handleNewSession } from "./login.server";
 import { getAuthSessionStorage } from "~/utils/session.server";
 import { WorkerDb } from "lib/db";
@@ -27,13 +28,28 @@ const LoginFormSchema = z.object({
   remember: z.boolean().optional(),
 });
 
-export async function loader() {
+export async function loader({ context, request }: LoaderFunctionArgs) {
+  const db = await WorkerDb.getInstance(context.cloudflare.env);
+  await requireAnonymous(
+    getAuthSessionStorage(context.cloudflare.env),
+    db,
+    request
+  );
+
   return json({});
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
+  const db = await WorkerDb.getInstance(context.cloudflare.env);
+  await requireAnonymous(
+    getAuthSessionStorage(context.cloudflare.env),
+    db,
+    request
+  );
+
   const formData = await request.formData();
   checkHoneypot(formData);
+
   const {
     cloudflare: { env },
   } = context;

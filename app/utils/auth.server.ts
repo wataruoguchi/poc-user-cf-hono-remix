@@ -1,6 +1,6 @@
 import { redirect } from "@remix-run/cloudflare";
 import bcrypt from "bcryptjs";
-import { Person, WorkerDb, WorkerDB } from "lib/db";
+import { Person, WorkerDB } from "lib/db";
 import { safeRedirect } from "remix-utils/safe-redirect";
 import { combineHeaders } from "./misc";
 import { getAuthSessionStorage } from "./session.server";
@@ -11,14 +11,16 @@ export const getSessionExpirationDate = () =>
 
 export const sessionKey = "sessionId";
 
-export async function getUserId(env: Env, request: Request) {
-  const authSessionStorage = getAuthSessionStorage(env);
+export async function getUserId(
+  authSessionStorage: ReturnType<typeof getAuthSessionStorage>,
+  db: WorkerDB,
+  request: Request
+) {
   const authSession = await authSessionStorage.getSession(
     request.headers.get("cookie")
   );
   const sessionId = authSession.get(sessionKey);
   if (!sessionId) return null;
-  const db = await WorkerDb.getInstance(env);
   const session = await db
     .selectFrom("person") // TODO: Use session table
     .where("id", "=", sessionId)
@@ -32,6 +34,39 @@ export async function getUserId(env: Env, request: Request) {
     });
   }
   return session.id;
+}
+
+export async function requireUserId(
+  authSessionStorage: ReturnType<typeof getAuthSessionStorage>,
+  db: WorkerDB,
+  request: Request,
+  { redirectTo }: { redirectTo?: string | null } = {}
+) {
+  const userId = await getUserId(authSessionStorage, db, request);
+  if (!userId) {
+    const requestUrl = new URL(request.url);
+    redirectTo =
+      redirectTo === null
+        ? null
+        : redirectTo ?? `${requestUrl.pathname}${requestUrl.search}`;
+    const loginParams = redirectTo ? new URLSearchParams({ redirectTo }) : null;
+    const loginRedirect = ["/login", loginParams?.toString()]
+      .filter(Boolean)
+      .join("?");
+    throw redirect(loginRedirect);
+  }
+  return userId;
+}
+
+export async function requireAnonymous(
+  authSessionStorage: ReturnType<typeof getAuthSessionStorage>,
+  db: WorkerDB,
+  request: Request
+) {
+  const userId = await getUserId(authSessionStorage, db, request);
+  if (userId) {
+    throw redirect("/");
+  }
 }
 
 export async function login(

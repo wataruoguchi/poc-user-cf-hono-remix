@@ -19,9 +19,11 @@ import { useOptionalUser } from "./utils/user";
 import { getAuthSessionStorage } from "./utils/session.server.ts";
 
 export async function loader({ context, request }: LoaderFunctionArgs) {
-  const honeyProps = honeypot.getInputProps();
-  const userId = await getUserId(context.cloudflare.env, request);
   const db = await WorkerDb.getInstance(context.cloudflare.env);
+  const authSessionStorage = getAuthSessionStorage(context.cloudflare.env);
+
+  const honeyProps = honeypot.getInputProps();
+  const userId = await getUserId(authSessionStorage, db, request);
   // TODO: Maybe better cache this.
   const user = userId
     ? await db
@@ -34,7 +36,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     console.info("something weird happened");
     // something weird happened... The user is authenticated but we can't find
     // them in the database. Maybe they were deleted? Let's log them out.
-    await logout(getAuthSessionStorage(context.cloudflare.env), {
+    await logout(authSessionStorage, {
       request,
       redirectTo: "/",
     });

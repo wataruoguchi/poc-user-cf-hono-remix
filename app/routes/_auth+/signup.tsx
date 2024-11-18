@@ -2,6 +2,7 @@ import { getFormProps, getInputProps, useForm } from "@conform-to/react";
 import { getZodConstraint, parseWithZod } from "@conform-to/zod";
 import {
   json,
+  LoaderFunctionArgs,
   redirect,
   type ActionFunctionArgs,
   type MetaFunction,
@@ -21,6 +22,8 @@ import {
   PasswordSchema,
   UsernameSchema,
 } from "~/utils/user-validation.ts";
+import { getAuthSessionStorage } from "~/utils/session.server";
+import { requireAnonymous } from "~/utils/auth.server";
 
 const SignupSchema = z.object({
   email: EmailSchema,
@@ -29,10 +32,27 @@ const SignupSchema = z.object({
   confirmPassword: PasswordSchema,
 });
 
+export async function loader({ context, request }: LoaderFunctionArgs) {
+  const db = await WorkerDb.getInstance(context.cloudflare.env);
+  await requireAnonymous(
+    getAuthSessionStorage(context.cloudflare.env),
+    db,
+    request
+  );
+
+  return json({});
+}
+
 export async function action({ request, context }: ActionFunctionArgs) {
+  const db = await WorkerDb.getInstance(context.cloudflare.env);
+  await requireAnonymous(
+    getAuthSessionStorage(context.cloudflare.env),
+    db,
+    request
+  );
+
   const formData = await request.formData();
   checkHoneypot(formData);
-  const db = await WorkerDb.getInstance(context.cloudflare.env);
 
   const submission = await parseWithZod(formData, {
     schema: SignupSchema.superRefine(async (data, ctx) => {

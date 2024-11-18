@@ -1,6 +1,6 @@
 import { redirect } from "@remix-run/cloudflare";
 import { safeRedirect } from "remix-utils/safe-redirect";
-import { sessionKey } from "~/utils/auth.sever";
+import { sessionKey } from "~/utils/auth.server.ts";
 import { combineResponseInits } from "~/utils/misc.ts";
 import { getAuthSessionStorage } from "~/utils/session.server";
 

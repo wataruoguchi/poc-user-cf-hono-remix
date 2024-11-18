@@ -15,7 +15,7 @@ import { useIsPending } from "~/utils/misc.ts";
 import { PasswordSchema, UsernameSchema } from "~/utils/user-validation.ts";
 import { GeneralErrorBoundary } from "~/components/error-boundary.tsx";
 import { Spacer } from "~/components/spacer.tsx";
-import { login } from "~/utils/auth.sever";
+import { login } from "~/utils/auth.server.ts";
 import { handleNewSession } from "./login.server";
 import { getAuthSessionStorage } from "~/utils/session.server";
 import { WorkerDb } from "lib/db";

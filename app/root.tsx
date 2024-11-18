@@ -13,7 +13,7 @@ import { HoneypotProvider } from "remix-utils/honeypot/react";
 import "./tailwind.css";
 import { honeypot } from "./utils/honeypot.server";
 import { getEnv } from "./utils/env.server";
-import { getUserId } from "./utils/auth.sever";
+import { getUserId } from "./utils/auth.server.ts";
 import { WorkerDb } from "lib/db";
 import { useOptionalUser } from "./utils/user";
 

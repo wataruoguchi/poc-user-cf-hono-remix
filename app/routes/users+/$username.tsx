@@ -7,15 +7,11 @@ import { Spacer } from "~/components/spacer.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { Icon } from "~/components/ui/icon.tsx";
 import { useOptionalUser } from "~/utils/user.ts";
+import { UserRepository } from "repositories/user.ts";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
-  const user = await db
-    .selectFrom("person")
-    .selectAll()
-    .where("username", "=", params.username!)
-    .executeTakeFirst();
-
+  const user = await UserRepository.getUserByUsername(db, params.username!);
   invariantResponse(user, "User not found", { status: 404 });
 
   const userJoinedDisplay = user.created_at?.toLocaleDateString();

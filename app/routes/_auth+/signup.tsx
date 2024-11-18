@@ -24,6 +24,7 @@ import {
 } from "~/utils/user-validation.ts";
 import { getAuthSessionStorage } from "~/utils/session.server";
 import { requireAnonymous } from "~/utils/auth.server";
+import { UserRepository } from "repositories/user";
 
 const SignupSchema = z.object({
   email: EmailSchema,
@@ -56,11 +57,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const submission = await parseWithZod(formData, {
     schema: SignupSchema.superRefine(async (data, ctx) => {
-      const existingUserByEmail = await db
-        .selectFrom("person")
-        .where("email", "=", data.email)
-        .select(["id"])
-        .executeTakeFirst();
+      const existingUserByEmail = await UserRepository.getUserByEmail(
+        db,
+        data.email
+      );
       if (existingUserByEmail) {
         ctx.addIssue({
           path: ["email"],
@@ -69,11 +69,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         });
         return;
       }
-      const existingUserByUsername = await db
-        .selectFrom("person")
-        .where("username", "=", data.username)
-        .select(["id"])
-        .executeTakeFirst();
+      const existingUserByUsername = await UserRepository.getUserByUsername(
+        db,
+        data.username
+      );
       if (existingUserByUsername) {
         ctx.addIssue({
           path: ["username"],

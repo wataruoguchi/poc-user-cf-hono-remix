@@ -17,6 +17,7 @@ import { WorkerDB, WorkerDb } from "lib/db.ts";
 import { useDoubleCheck } from "~/utils/misc.ts";
 import { getAuthSessionStorage } from "~/utils/session.server.ts";
 import { NameSchema, UsernameSchema } from "~/utils/user-validation.ts";
+import { UserRepository } from "repositories/user";
 
 const ProfileFormSchema = z.object({
   name: NameSchema.optional(),
@@ -30,22 +31,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     db,
     request
   );
-  const user = await db
-    .selectFrom("person")
-    .where("id", "=", userId)
-    .select(["id", "username", "email"])
-    .executeTakeFirst();
+  const user = await UserRepository.getUserById(db, userId);
   if (!user) invariantResponse(user, "User not found", { status: 404 });
-
-  const password = await db
-    .selectFrom("password")
-    .where("person_id", "=", userId)
-    .select(["person_id"])
-    .executeTakeFirst();
 
   return json({
     user,
-    hasPassword: Boolean(password),
+    hasPassword: await UserRepository.hasPassword(db, userId),
   });
 }
 
@@ -141,11 +132,10 @@ async function profileUpdateAction({
   const submission = await parseWithZod(formData, {
     async: true,
     schema: ProfileFormSchema.superRefine(async ({ username }, ctx) => {
-      const existingUsername = await db
-        .selectFrom("person")
-        .where("username", "=", username)
-        .select(["id"])
-        .executeTakeFirst();
+      const existingUsername = await UserRepository.getUserByUsername(
+        db,
+        username
+      );
 
       if (existingUsername && existingUsername.id !== userId) {
         ctx.addIssue({
@@ -165,13 +155,7 @@ async function profileUpdateAction({
 
   const data = submission.value;
 
-  await db
-    .updateTable("person")
-    .where("id", "=", userId)
-    .set({
-      username: data.username,
-    })
-    .execute();
+  await UserRepository.updateUsername(db, userId, data.username);
 
   return json({
     result: submission.reply(),
@@ -231,7 +215,7 @@ async function deleteDataAction({
   request,
   userId,
 }: ProfileActionArgs) {
-  await db.deleteFrom("person").where("id", "=", userId).execute();
+  await UserRepository.deleteUser(db, userId);
   const authSession = await authSessionStorage.getSession(
     request.headers.get("cookie")
   );

@@ -1,6 +1,7 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { WorkerDb } from "lib/db";
+import { UserRepository } from "repositories/user";
 
 export const meta: MetaFunction = () => {
   return [
@@ -13,10 +14,7 @@ export const loader = async (args: LoaderFunctionArgs) => {
   const extra = args.context.extra;
   const cloudflare = args.context.cloudflare;
   const db = await WorkerDb.getInstance(cloudflare.env);
-  const nOfUsers = await db
-    .selectFrom("person")
-    .select(({ fn }) => [fn.countAll<number>().as("count")])
-    .executeTakeFirst();
+  const nOfUsers = await UserRepository.getTotalNumberOfUsers(db);
   return { extra, cloudflare, nOfUsers };
 };
 

@@ -17,6 +17,7 @@ import { getUserId, logout } from "./utils/auth.server.ts";
 import { WorkerDb } from "lib/db";
 import { useOptionalUser } from "./utils/user";
 import { getAuthSessionStorage } from "./utils/session.server.ts";
+import { UserRepository } from "repositories/user.ts";
 
 export async function loader({ context, request }: LoaderFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
@@ -25,13 +26,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   const honeyProps = honeypot.getInputProps();
   const userId = await getUserId(authSessionStorage, db, request);
   // TODO: Maybe better cache this.
-  const user = userId
-    ? await db
-        .selectFrom("person")
-        .where("id", "=", userId)
-        .select(["id", "username"])
-        .executeTakeFirst()
-    : null;
+  const user = userId ? await UserRepository.getUserById(db, userId) : null;
   if (userId && !user) {
     console.info("something weird happened");
     // something weird happened... The user is authenticated but we can't find

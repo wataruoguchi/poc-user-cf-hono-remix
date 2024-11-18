@@ -3,16 +3,12 @@
  * Supabase should appear only in this file.
  */
 import { Kysely } from "kysely";
+import { DB as KyselyCodegenDB } from "kysely-codegen";
 import { PostgresJSDialect } from "kysely-postgres-js";
-import { type KyselifyDatabase } from "kysely-supabase";
 import postgres from "postgres";
-import { type Database } from "../db/supabase.types";
 
-type TableRow<TableName extends keyof Database["public"]["Tables"]> =
-  Database["public"]["Tables"][TableName]["Row"];
-
-export type DB = KyselifyDatabase<Database>;
-export type Person = TableRow<"person">;
+export type DB = KyselyCodegenDB;
+export type Person = KyselyCodegenDB["person"];
 export type WorkerDB = Kysely<DB>;
 
 export class WorkerDb {

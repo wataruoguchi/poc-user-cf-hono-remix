@@ -15,6 +15,7 @@ import { honeypot } from "./utils/honeypot.server";
 import { getEnv } from "./utils/env.server";
 import { getUserId } from "./utils/auth.sever";
 import { WorkerDb } from "lib/db";
+import { useOptionalUser } from "./utils/user";
 
 export async function loader({ context, request }: LoaderFunctionArgs) {
   const honeyProps = honeypot.getInputProps();
@@ -49,7 +50,8 @@ export const links: LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const { env, user } = useLoaderData<typeof loader>();
+  const { env } = useLoaderData<typeof loader>();
+  const user = useOptionalUser();
   return (
     <html lang="en">
       <head>

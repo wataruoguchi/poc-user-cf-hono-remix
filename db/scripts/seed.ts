@@ -1,4 +1,9 @@
-import { createPassword, createUser } from "tests/db-utils";
+import {
+  createPassword,
+  createPermissions,
+  createRoles,
+  createUser,
+} from "tests/db-utils";
 import { WorkerDb } from "../../lib/db";
 
 const SUPABASE_URI = process.env.SUPABASE_URI;
@@ -24,9 +29,60 @@ seed()
 async function seed() {
   console.log("🌱 Seeding...");
   console.time(`🌱 Database has been seeded`);
-  // Delete existing records (optional)
   await db.deleteFrom("person").execute();
+  await db.deleteFrom("role").execute();
+  await db.deleteFrom("permission").execute();
 
+  /**
+   * Roles and permissions
+   */
+  const permissions = createPermissions();
+  await db
+    .insertInto("permission")
+    .values(permissions)
+    .returningAll()
+    .execute();
+
+  const roles = createRoles();
+  await db.insertInto("role").values(roles).execute();
+
+  /*
+   * Assign permissions to roles
+   */
+  const adminRole = roles.find((role) => role.name === "admin");
+  if (!adminRole) {
+    throw new Error("Admin role not found");
+  }
+  const userRole = roles.find((role) => role.name === "user");
+  if (!userRole) {
+    throw new Error("User role not found");
+  }
+  await db
+    .insertInto("role_permission")
+    .values(
+      permissions
+        .filter((permission) => permission.access === "any") // For admin
+        .map((permission) => ({
+          role_id: adminRole.id,
+          permission_id: permission.id,
+        }))
+    )
+    .execute();
+  await db
+    .insertInto("role_permission")
+    .values(
+      permissions
+        .filter((permission) => permission.access === "own") // For user
+        .map((permission) => ({
+          role_id: userRole.id,
+          permission_id: permission.id,
+        }))
+    )
+    .execute();
+
+  /**
+   * Users
+   */
   const randomUsers = Array.from({ length: 10 }).map(() => createUser());
   const wataru = {
     id: crypto.randomUUID(),
@@ -51,6 +107,23 @@ async function seed() {
         person_id: user.id,
       })),
     ])
+    .execute();
+
+  /**
+   * Assign roles to users
+   */
+  await db
+    .insertInto("role_person")
+    .values([{ person_id: wataru.id, role_id: adminRole.id }])
+    .execute();
+  await db
+    .insertInto("role_person")
+    .values(
+      [wataru, ...randomUsers].map((user) => ({
+        person_id: user.id,
+        role_id: userRole.id,
+      }))
+    )
     .execute();
 
   console.timeEnd(`🌱 Database has been seeded`);

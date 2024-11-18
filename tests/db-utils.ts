@@ -34,3 +34,27 @@ export function createPassword(password: string = faker.internet.password()) {
     hash: bcrypt.hashSync(password, 10),
   };
 }
+
+const entities = ["user", "note"] as const;
+const actions = ["create", "read", "write", "delete"] as const;
+const accesses = ["own", "any"] as const;
+export function createPermissions() {
+  return entities.flatMap((entity) =>
+    actions.flatMap((action) =>
+      accesses.map((access) => ({
+        id: crypto.randomUUID(),
+        action,
+        entity,
+        access,
+      }))
+    )
+  );
+}
+
+const roleNames = ["admin", "user"] as const;
+export function createRoles() {
+  return roleNames.map((name) => ({
+    id: crypto.randomUUID(),
+    name,
+  }));
+}

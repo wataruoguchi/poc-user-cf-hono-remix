@@ -5,6 +5,10 @@ import { safeRedirect } from "remix-utils/safe-redirect";
 import { combineHeaders } from "./misc";
 import { getAuthSessionStorage } from "./session.server";
 
+export const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30; // 30 days
+export const getSessionExpirationDate = () =>
+  new Date(Date.now() + SESSION_EXPIRATION_TIME);
+
 export const sessionKey = "sessionId";
 
 export async function getUserId(env: Env, request: Request) {
@@ -49,7 +53,9 @@ export async function login(
   if (!user) return null;
   const isValid = await verifyUserPassword(db, { id: user.id }, password);
   // TODO: Return a session, not a user
-  return user && isValid ? user : null;
+  return user && isValid
+    ? { ...user, expirationDate: getSessionExpirationDate() }
+    : null;
 }
 
 export async function verifyUserPassword(

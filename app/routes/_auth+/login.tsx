@@ -64,11 +64,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const { session, remember, redirectTo } = submission.value;
-  const patchyDate = new Date(); // TODO: Use expirationDate from the database
-  patchyDate.setDate(patchyDate.getDate() + 100);
   return handleNewSession(getAuthSessionStorage(env), {
     request,
-    session: { id: session.id, expirationDate: patchyDate },
+    session,
     remember: remember ?? false,
     redirectTo,
   });

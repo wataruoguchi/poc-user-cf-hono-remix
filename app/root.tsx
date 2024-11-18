@@ -13,9 +13,10 @@ import { HoneypotProvider } from "remix-utils/honeypot/react";
 import "./tailwind.css";
 import { honeypot } from "./utils/honeypot.server";
 import { getEnv } from "./utils/env.server";
-import { getUserId } from "./utils/auth.server.ts";
+import { getUserId, logout } from "./utils/auth.server.ts";
 import { WorkerDb } from "lib/db";
 import { useOptionalUser } from "./utils/user";
+import { getAuthSessionStorage } from "./utils/session.server.ts";
 
 export async function loader({ context, request }: LoaderFunctionArgs) {
   const honeyProps = honeypot.getInputProps();
@@ -29,6 +30,15 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
         .select(["id", "username"])
         .executeTakeFirst()
     : null;
+  if (userId && !user) {
+    console.info("something weird happened");
+    // something weird happened... The user is authenticated but we can't find
+    // them in the database. Maybe they were deleted? Let's log them out.
+    await logout(getAuthSessionStorage(context.cloudflare.env), {
+      request,
+      redirectTo: "/",
+    });
+  }
   return json({
     user,
     env: getEnv(context.cloudflare.env),

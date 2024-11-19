@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker";
 import bcrypt from "bcryptjs";
 import { UniqueEnforcer } from "enforce-unique";
+import { Access, Action, Entity } from "~/utils/permissions.server";
 
 const uniqueUsernameEnforcer = new UniqueEnforcer();
 
@@ -35,9 +36,9 @@ export function createPassword(password: string = faker.internet.password()) {
   };
 }
 
-const entities = ["user", "note"] as const;
-const actions = ["create", "read", "write", "delete"] as const;
-const accesses = ["own", "any"] as const;
+const entities: Entity[] = ["user", "note"] as const;
+const actions: Action[] = ["create", "read", "update", "delete"] as const;
+const accesses: Access[] = ["own", "any"] as const;
 export function createPermissions() {
   return entities.flatMap((entity) =>
     actions.flatMap((action) =>

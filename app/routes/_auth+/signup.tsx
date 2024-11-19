@@ -12,7 +12,7 @@ import { WorkerDb } from "lib/db";
 import { HoneypotInputs } from "remix-utils/honeypot/react";
 import { z } from "zod";
 import { GeneralErrorBoundary } from "~/components/error-boundary.tsx";
-import { ErrorList, Field } from "~/components/forms.tsx";
+import { CheckboxField, ErrorList, Field } from "~/components/forms.tsx";
 import { StatusButton } from "~/components/ui/status-button.tsx";
 import { checkHoneypot } from "~/utils/honeypot.server.ts";
 import { useIsPending } from "~/utils/misc.ts";
@@ -22,14 +22,18 @@ import {
   UsernameSchema,
 } from "~/utils/user-validation.ts";
 import { getAuthSessionStorage } from "~/utils/session.server";
-import { requireAnonymous, signup } from "~/utils/auth.server";
+import { requireAnonymous, sessionKey, signup } from "~/utils/auth.server";
 import { UserRepository } from "repositories/user";
+import { safeRedirect } from "remix-utils/safe-redirect";
 
 const SignupSchema = z.object({
   email: EmailSchema,
   username: UsernameSchema,
   password: PasswordSchema,
   confirmPassword: PasswordSchema,
+  agreeToTermsOfServiceAndPrivacyPolicy: z.boolean(),
+  remember: z.boolean().optional(),
+  redirectTo: z.string().optional(),
 });
 
 export async function loader({ context, request }: LoaderFunctionArgs) {
@@ -45,6 +49,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
+  const authSessionStorage = getAuthSessionStorage(context.cloudflare.env);
   await requireAnonymous(
     getAuthSessionStorage(context.cloudflare.env),
     db,
@@ -80,7 +85,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
     }).transform(async (data) => {
       const { email, username, password } = data;
-      return await signup(db, { email, username, password });
+      const session = await signup(db, { email, username, password });
+      return { ...data, session };
     }),
     async: true,
   });
@@ -91,7 +97,23 @@ export async function action({ request, context }: ActionFunctionArgs) {
     );
   }
 
-  return redirect("/protected");
+  const { session, remember, redirectTo } = submission.value;
+
+  const authSession = await authSessionStorage.getSession(
+    request.headers.get("cookie")
+  );
+  authSession.set(sessionKey, session.id);
+  const headers = new Headers();
+  headers.append(
+    "set-cookie",
+    await authSessionStorage.commitSession(authSession, {
+      expires: remember ? session.expires_at : undefined,
+    })
+  );
+
+  return redirect(safeRedirect(redirectTo), {
+    headers,
+  });
 }
 
 export const meta: MetaFunction = () => {
@@ -169,6 +191,29 @@ export default function SignupRoute() {
             }}
             errors={fields.confirmPassword.errors}
           />
+          <CheckboxField
+            labelProps={{
+              htmlFor: fields.agreeToTermsOfServiceAndPrivacyPolicy.id,
+              children:
+                "Do you agree to our Terms of Service and Privacy Policy?",
+            }}
+            buttonProps={getInputProps(
+              fields.agreeToTermsOfServiceAndPrivacyPolicy,
+              { type: "checkbox" }
+            )}
+            errors={fields.agreeToTermsOfServiceAndPrivacyPolicy.errors}
+          />
+          <CheckboxField
+            labelProps={{
+              htmlFor: fields.remember.id,
+              children: "Remember me",
+            }}
+            buttonProps={getInputProps(fields.remember, {
+              type: "checkbox",
+            })}
+            errors={fields.remember.errors}
+          />
+          <input {...getInputProps(fields.redirectTo, { type: "hidden" })} />
           <ErrorList errors={form.errors} id={form.errorId} />
           <StatusButton
             className="w-full"

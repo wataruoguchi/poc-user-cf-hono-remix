@@ -26,12 +26,12 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   const honeyProps = honeypot.getInputProps();
   const userId = await getUserId(authSessionStorage, db, request);
   // TODO: Maybe better cache this.
-  const user = userId ? await UserRepository.getUserById(db, userId) : null;
+  const user = userId ? await UserRepository.getUser(db, { id: userId }) : null;
   if (userId && !user) {
     console.info("something weird happened");
     // something weird happened... The user is authenticated but we can't find
     // them in the database. Maybe they were deleted? Let's log them out.
-    await logout(authSessionStorage, {
+    await logout(authSessionStorage, db, {
       request,
       redirectTo: "/",
     });

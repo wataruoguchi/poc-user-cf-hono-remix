@@ -11,7 +11,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const authSessionStorage = getAuthSessionStorage(context.cloudflare.env);
   const isOwner =
     (await requireUserId(authSessionStorage, db, request)) ===
-    (await UserRepository.getUserByUsername(db, params.username!))?.id;
+    (await UserRepository.getUser(db, { username: params.username! }))?.id;
   let canCreate: boolean;
   try {
     await requireUserWithPermission(

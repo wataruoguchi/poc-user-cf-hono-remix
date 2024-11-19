@@ -13,8 +13,7 @@ export async function handleNewSession(
     remember,
   }: {
     request: Request;
-    // session: { userId: string; id: string; expirationDate: Date }; // TODO: No table for session yet
-    session: { id: string; expirationDate: Date };
+    session: { id: string; expires_at: Date };
     redirectTo?: string;
     remember: boolean;
   },
@@ -31,7 +30,7 @@ export async function handleNewSession(
       {
         headers: {
           "set-cookie": await authSessionStorage.commitSession(authSession, {
-            expires: remember ? session.expirationDate : undefined,
+            expires: remember ? session.expires_at : undefined,
           }),
         },
       },

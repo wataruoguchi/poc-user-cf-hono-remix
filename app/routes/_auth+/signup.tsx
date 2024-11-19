@@ -16,14 +16,13 @@ import { ErrorList, Field } from "~/components/forms.tsx";
 import { StatusButton } from "~/components/ui/status-button.tsx";
 import { checkHoneypot } from "~/utils/honeypot.server.ts";
 import { useIsPending } from "~/utils/misc.ts";
-import bcrypt from "bcryptjs";
 import {
   EmailSchema,
   PasswordSchema,
   UsernameSchema,
 } from "~/utils/user-validation.ts";
 import { getAuthSessionStorage } from "~/utils/session.server";
-import { requireAnonymous } from "~/utils/auth.server";
+import { requireAnonymous, signup } from "~/utils/auth.server";
 import { UserRepository } from "repositories/user";
 
 const SignupSchema = z.object({
@@ -57,10 +56,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const submission = await parseWithZod(formData, {
     schema: SignupSchema.superRefine(async (data, ctx) => {
-      const existingUserByEmail = await UserRepository.getUserByEmail(
-        db,
-        data.email
-      );
+      const existingUserByEmail = await UserRepository.getUser(db, {
+        email: data.email,
+      });
       if (existingUserByEmail) {
         ctx.addIssue({
           path: ["email"],
@@ -69,10 +67,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         });
         return;
       }
-      const existingUserByUsername = await UserRepository.getUserByUsername(
-        db,
-        data.username
-      );
+      const existingUserByUsername = await UserRepository.getUser(db, {
+        username: data.username,
+      });
       if (existingUserByUsername) {
         ctx.addIssue({
           path: ["username"],
@@ -83,27 +80,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
     }).transform(async (data) => {
       const { email, username, password } = data;
-      const person = await db.transaction().execute(async (trx) => {
-        const person = await trx
-          .insertInto("person")
-          .values({
-            id: crypto.randomUUID(),
-            email,
-            username,
-          })
-          .returningAll()
-          .executeTakeFirstOrThrow();
-
-        await trx
-          .insertInto("password")
-          .values({
-            person_id: person.id,
-            hash: await bcrypt.hash(password, 10),
-          })
-          .execute();
-        return person;
-      });
-      return person;
+      return await signup(db, { email, username, password });
     }),
     async: true,
   });

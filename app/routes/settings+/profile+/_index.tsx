@@ -31,12 +31,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     db,
     request
   );
-  const user = await UserRepository.getUserById(db, userId);
+  const user = await UserRepository.getUser(db, { id: userId });
   if (!user) invariantResponse(user, "User not found", { status: 404 });
 
   return json({
     user,
-    hasPassword: await UserRepository.hasPassword(db, userId),
+    hasPassword: Boolean(
+      await UserRepository.getPasswordHash(db, { id: userId })
+    ),
   });
 }
 
@@ -132,10 +134,9 @@ async function profileUpdateAction({
   const submission = await parseWithZod(formData, {
     async: true,
     schema: ProfileFormSchema.superRefine(async ({ username }, ctx) => {
-      const existingUsername = await UserRepository.getUserByUsername(
-        db,
-        username
-      );
+      const existingUsername = await UserRepository.getUser(db, {
+        username,
+      });
 
       if (existingUsername && existingUsername.id !== userId) {
         ctx.addIssue({

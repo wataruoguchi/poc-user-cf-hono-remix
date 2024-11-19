@@ -1,48 +1,64 @@
-import { DB, WorkerDB } from "lib/db";
+import { Person, WorkerDB } from "lib/db";
 import { parsePermissionString } from "~/utils/permissions.server";
 
 export const UserRepository = {
-  getUserById,
-  getUserByUsername,
-  getUserByEmail,
+  getUser,
   getUserWithPermissions,
   getTotalNumberOfUsers,
-  hasPassword,
+  getPasswordHash,
   updateUsername,
   deleteUser,
 };
 
-function getUserById(db: WorkerDB, id: DB["person"]["id"]) {
-  return db
-    .selectFrom("person")
-    .where("id", "=", id)
-    .select(["id", "username", "email"])
-    .executeTakeFirst();
-}
-
-async function getUserByUsername(
+function getUser(
   db: WorkerDB,
-  username: DB["person"]["username"]
+  where:
+    | { id: Person["id"] }
+    | { username: Person["username"] }
+    | { email: Person["email"] }
 ) {
+  const whereClause =
+    "id" in where ? "id" : "username" in where ? "username" : "email";
+  const value =
+    "id" in where
+      ? where.id
+      : "username" in where
+      ? where.username
+      : where.email;
   return db
     .selectFrom("person")
-    .where("username", "=", username)
+    .where(whereClause, "=", value)
     .select(["id", "username", "email", "created_at"])
     .executeTakeFirst();
 }
 
-async function getUserByEmail(db: WorkerDB, email: DB["person"]["email"]) {
-  return db
+async function getPasswordHash(
+  db: WorkerDB,
+  where:
+    | { id: Person["id"] }
+    | { username: Person["username"] }
+    | { email: Person["email"] }
+) {
+  const whereClause =
+    "id" in where ? "id" : "username" in where ? "username" : "email";
+  const value =
+    "id" in where
+      ? where.id
+      : "username" in where
+      ? where.username
+      : where.email;
+  return await db
     .selectFrom("person")
-    .where("email", "=", email)
-    .select(["id", "username", "email"])
+    .innerJoin("password", "person.id", "password.person_id")
+    .where(whereClause, "=", value)
+    .select(["person.id", "password.hash"])
     .executeTakeFirst();
 }
 
 async function updateUsername(
   db: WorkerDB,
-  id: DB["person"]["id"],
-  username: DB["person"]["username"]
+  id: Person["id"],
+  username: Person["username"]
 ) {
   return db
     .updateTable("person")
@@ -51,7 +67,7 @@ async function updateUsername(
     .execute();
 }
 
-async function deleteUser(db: WorkerDB, id: DB["person"]["id"]) {
+async function deleteUser(db: WorkerDB, id: Person["id"]) {
   return db.deleteFrom("person").where("id", "=", id).execute();
 }
 
@@ -62,21 +78,9 @@ function getTotalNumberOfUsers(db: WorkerDB) {
     .executeTakeFirst();
 }
 
-async function hasPassword(
-  db: WorkerDB,
-  id: DB["person"]["id"]
-): Promise<boolean> {
-  const r = await db
-    .selectFrom("password")
-    .where("person_id", "=", id)
-    .select(["hash"])
-    .executeTakeFirst();
-  return Boolean(r);
-}
-
 async function getUserWithPermissions(
   db: WorkerDB,
-  id: DB["person"]["id"],
+  id: Person["id"],
   permissionData: ReturnType<typeof parsePermissionString>
 ) {
   return await db

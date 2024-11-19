@@ -2,6 +2,7 @@ import { redirect } from "@remix-run/cloudflare";
 import bcrypt from "bcryptjs";
 import { Person, WorkerDB } from "lib/db";
 import { safeRedirect } from "remix-utils/safe-redirect";
+import { UserRepository } from "repositories/user";
 import { combineHeaders } from "./misc";
 import { getAuthSessionStorage } from "./session.server";
 
@@ -22,9 +23,9 @@ export async function getUserId(
   const sessionId = authSession.get(sessionKey);
   if (!sessionId) return null;
   const session = await db
-    .selectFrom("person") // TODO: Use session table
+    .selectFrom("session")
     .where("id", "=", sessionId)
-    .select("id")
+    .select("person_id")
     .executeTakeFirst();
   if (!session) {
     throw redirect("/", {
@@ -33,7 +34,7 @@ export async function getUserId(
       },
     });
   }
-  return session.id;
+  return session.person_id;
 }
 
 export async function requireUserId(
@@ -79,48 +80,68 @@ export async function login(
     password: string;
   }
 ) {
-  // TODO: Loop up session table
-  const user = await db
-    .selectFrom("person")
-    .where("username", "=", username)
-    .selectAll()
+  const person = await verifyUserPassword(db, { username }, password);
+  if (!person) return null;
+  // Create a session
+  const session = await db
+    .insertInto("session")
+    .values({
+      id: crypto.randomUUID(),
+      person_id: person.id,
+      expires_at: getSessionExpirationDate(),
+    })
+    .returning(["id", "person_id", "expires_at"])
     .executeTakeFirst();
-  if (!user) return null;
-  const isValid = await verifyUserPassword(db, { id: user.id }, password);
-  // TODO: Return a session, not a user
-  return user && isValid
-    ? { ...user, expirationDate: getSessionExpirationDate() }
-    : null;
+  return session || null;
 }
 
-export async function verifyUserPassword(
+export async function signup(
   db: WorkerDB,
-  where: Pick<Person, "id">,
-  password: string
+  {
+    email,
+    username,
+    password,
+  }: {
+    email: Person["email"];
+    username: Person["username"];
+    password: string;
+  }
 ) {
-  // TODO: Join with person table. Support looking up by username as well.
-  const passwordForPersonId = await db
-    .selectFrom("password")
-    .where("person_id", "=", where.id)
-    .select("hash")
-    .executeTakeFirst();
+  const hashedPassword = await getPasswordHash(password);
+  const session = await db.transaction().execute(async (trx) => {
+    const person = await trx
+      .insertInto("person")
+      .values({
+        id: crypto.randomUUID(),
+        email: email.toLowerCase(),
+        username: username.toLowerCase(),
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
+    await trx
+      .insertInto("password")
+      .values({
+        person_id: person.id,
+        hash: hashedPassword,
+      })
+      .execute();
+    return await trx
+      .insertInto("session")
+      .values({
+        id: crypto.randomUUID(),
+        person_id: person.id,
+        expires_at: getSessionExpirationDate(),
+      })
+      .returning(["id", "expires_at"])
+      .executeTakeFirstOrThrow();
+  });
 
-  if (!passwordForPersonId || !passwordForPersonId.hash) {
-    return null;
-  }
-
-  // TODO: Add rate limiting.
-  const isValid = await bcrypt.compare(password, passwordForPersonId.hash);
-
-  if (!isValid) {
-    return null;
-  }
-
-  return { id: where.id };
+  return session;
 }
 
 export async function logout(
   authSessionStorage: ReturnType<typeof getAuthSessionStorage>,
+  db: WorkerDB,
   {
     request,
     redirectTo = "/",
@@ -133,17 +154,14 @@ export async function logout(
   const authSession = await authSessionStorage.getSession(
     request.headers.get("cookie")
   );
-  // TODO: Create session table
-  // const sessionId = authSession.get(sessionKey);
-  // // if this fails, we still need to delete the session from the user's browser
-  // // and it doesn't do any harm staying in the db anyway.
-  // if (sessionId) {
-  //   // the .catch is important because that's what triggers the query.
-  //   // learn more about PrismaPromise: https://www.prisma.io/docs/orm/reference/prisma-client-reference#prismapromise-behavior
-  //   void prisma.session
-  //     .deleteMany({ where: { id: sessionId } })
-  //     .catch(() => {});
-  // }
+  const sessionId = authSession.get(sessionKey);
+  void db
+    .deleteFrom("session")
+    .where("id", "=", sessionId)
+    .execute()
+    .catch(() => {
+      /* Do nothing intentionally. */
+    });
   throw redirect(safeRedirect(redirectTo), {
     ...responseInit,
     headers: combineHeaders(
@@ -151,4 +169,29 @@ export async function logout(
       responseInit?.headers
     ),
   });
+}
+
+export async function getPasswordHash(password: string) {
+  const hash = await bcrypt.hash(password, 10);
+  return hash;
+}
+
+export async function verifyUserPassword(
+  db: WorkerDB,
+  where: { id: Person["id"] } | { username: Person["username"] },
+  password: string
+): Promise<{ id: Person["id"] } | null> {
+  const passwordForPerson = await UserRepository.getPasswordHash(db, where);
+  if (!passwordForPerson || !passwordForPerson.hash) {
+    return null;
+  }
+
+  // TODO: Add rate limiting.
+  const isValid = await bcrypt.compare(password, passwordForPerson.hash);
+
+  if (!isValid) {
+    return null;
+  }
+
+  return { id: passwordForPerson.id };
 }

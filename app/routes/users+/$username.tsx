@@ -11,7 +11,9 @@ import { UserRepository } from "repositories/user.ts";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
-  const user = await UserRepository.getUserByUsername(db, params.username!);
+  const user = await UserRepository.getUser(db, {
+    username: params.username!,
+  });
   invariantResponse(user, "User not found", { status: 404 });
 
   const userJoinedDisplay = user.created_at?.toLocaleDateString();

@@ -1,9 +1,11 @@
 import { DB, WorkerDB } from "lib/db";
+import { parsePermissionString } from "~/utils/permissions.server";
 
 export const UserRepository = {
   getUserById,
   getUserByUsername,
   getUserByEmail,
+  getUserWithPermissions,
   getTotalNumberOfUsers,
   hasPassword,
   updateUsername,
@@ -70,4 +72,29 @@ async function hasPassword(
     .select(["hash"])
     .executeTakeFirst();
   return Boolean(r);
+}
+
+async function getUserWithPermissions(
+  db: WorkerDB,
+  id: DB["person"]["id"],
+  permissionData: ReturnType<typeof parsePermissionString>
+) {
+  return await db
+    .selectFrom("person")
+    .selectAll()
+    .where("person.id", "=", id)
+    .innerJoin("role_person", "role_person.person_id", "person.id")
+    .innerJoin("role", "role.id", "role_person.role_id")
+    .innerJoin("role_permission", "role_permission.role_id", "role.id")
+    .innerJoin("permission", "permission.id", "role_permission.permission_id")
+    .where((eb) =>
+      eb.and([
+        eb("permission.action", "=", permissionData.action),
+        eb("permission.entity", "=", permissionData.entity),
+        permissionData.access
+          ? eb("permission.access", "in", permissionData.access)
+          : eb.val(true),
+      ])
+    )
+    .executeTakeFirst();
 }

@@ -2,6 +2,7 @@ import { invariantResponse } from "@epic-web/invariant";
 import { json, type LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { Link, Outlet, useMatches } from "@remix-run/react";
 import { WorkerDb } from "lib/db";
+import { UserRepository } from "repositories/user";
 import { z } from "zod";
 import { Spacer } from "~/components/spacer.tsx";
 import { Icon } from "~/components/ui/icon.tsx";
@@ -24,11 +25,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     db,
     request
   );
-  const user = await db
-    .selectFrom("person")
-    .where("id", "=", userId)
-    .select(["username"])
-    .executeTakeFirst();
+  const user = await UserRepository.getUser(db, { id: userId });
   invariantResponse(user, "User not found", { status: 404 });
   return json({});
 }

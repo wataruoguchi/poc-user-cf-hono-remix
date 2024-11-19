@@ -2,6 +2,7 @@ import { redirect } from "@remix-run/cloudflare";
 import bcrypt from "bcryptjs";
 import { Person, WorkerDB } from "lib/db";
 import { safeRedirect } from "remix-utils/safe-redirect";
+import { SessionRepository } from "repositories/session";
 import { UserRepository } from "repositories/user";
 import { combineHeaders } from "./misc";
 import { getAuthSessionStorage } from "./session.server";
@@ -22,11 +23,7 @@ export async function getUserId(
   );
   const sessionId = authSession.get(sessionKey);
   if (!sessionId) return null;
-  const session = await db
-    .selectFrom("session")
-    .where("id", "=", sessionId)
-    .select("person_id")
-    .executeTakeFirst();
+  const session = await SessionRepository.getSession(db, sessionId);
   if (!session) {
     throw redirect("/", {
       headers: {
@@ -83,15 +80,7 @@ export async function login(
   const person = await verifyUserPassword(db, { username }, password);
   if (!person) return null;
   // Create a session
-  const session = await db
-    .insertInto("session")
-    .values({
-      id: crypto.randomUUID(),
-      person_id: person.id,
-      expires_at: getSessionExpirationDate(),
-    })
-    .returning(["id", "person_id", "expires_at"])
-    .executeTakeFirst();
+  const session = await SessionRepository.createSession(db, person.id);
   return session || null;
 }
 
@@ -109,15 +98,10 @@ export async function signup(
 ) {
   const hashedPassword = await getPasswordHash(password);
   const session = await db.transaction().execute(async (trx) => {
-    const person = await trx
-      .insertInto("person")
-      .values({
-        id: crypto.randomUUID(),
-        email: email.toLowerCase(),
-        username: username.toLowerCase(),
-      })
-      .returningAll()
-      .executeTakeFirstOrThrow();
+    const person = await UserRepository.createUser(trx, {
+      email: email.toLowerCase(),
+      username: username.toLowerCase(),
+    });
     await trx
       .insertInto("password")
       .values({
@@ -125,15 +109,7 @@ export async function signup(
         hash: hashedPassword,
       })
       .execute();
-    return await trx
-      .insertInto("session")
-      .values({
-        id: crypto.randomUUID(),
-        person_id: person.id,
-        expires_at: getSessionExpirationDate(),
-      })
-      .returning(["id", "expires_at"])
-      .executeTakeFirstOrThrow();
+    return await SessionRepository.createSession(trx, person.id);
   });
 
   return session;
@@ -155,13 +131,9 @@ export async function logout(
     request.headers.get("cookie")
   );
   const sessionId = authSession.get(sessionKey);
-  void db
-    .deleteFrom("session")
-    .where("id", "=", sessionId)
-    .execute()
-    .catch(() => {
-      /* Do nothing intentionally. */
-    });
+  void SessionRepository.deleteSession(db, sessionId).catch(() => {
+    /* Do nothing intentionally. */
+  });
   throw redirect(safeRedirect(redirectTo), {
     ...responseInit,
     headers: combineHeaders(

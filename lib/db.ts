@@ -9,6 +9,7 @@ import postgres from "postgres";
 
 export type DB = KyselyCodegenDB;
 export type Person = KyselyCodegenDB["person"];
+export type Session = KyselyCodegenDB["session"];
 export type WorkerDB = Kysely<DB>;
 
 export class WorkerDb {

@@ -1,11 +1,15 @@
 import { Honeypot, SpamError } from "remix-utils/honeypot/server";
 
-export const honeypot = new Honeypot({
-  validFromFieldName: process.env.NODE_ENV === "test" ? null : undefined,
-  encryptionSeed: process.env.HONEYPOT_SECRET,
-});
+export function getHoneypot(env: Env) {
+  return new Honeypot({
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    validFromFieldName: env.ENVIRONMENT === "test" ? null : undefined,
+    encryptionSeed: env.HONEYPOT_SECRET,
+  });
+}
 
-export function checkHoneypot(formData: FormData) {
+export function checkHoneypot(honeypot: Honeypot, formData: FormData) {
   try {
     honeypot.check(formData);
   } catch (error) {

@@ -14,7 +14,7 @@ import { z } from "zod";
 import { GeneralErrorBoundary } from "~/components/error-boundary.tsx";
 import { CheckboxField, ErrorList, Field } from "~/components/forms.tsx";
 import { StatusButton } from "~/components/ui/status-button.tsx";
-import { checkHoneypot } from "~/utils/honeypot.server.ts";
+import { checkHoneypot, getHoneypot } from "~/utils/honeypot.server.ts";
 import { useIsPending } from "~/utils/misc.ts";
 import {
   EmailSchema,
@@ -57,7 +57,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   );
 
   const formData = await request.formData();
-  checkHoneypot(formData);
+  const honeypot = getHoneypot(context.cloudflare.env);
+  checkHoneypot(honeypot, formData);
 
   const submission = await parseWithZod(formData, {
     schema: SignupSchema.superRefine(async (data, ctx) => {

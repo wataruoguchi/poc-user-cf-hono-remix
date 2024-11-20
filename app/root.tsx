@@ -11,7 +11,7 @@ import {
 import { HoneypotProvider } from "remix-utils/honeypot/react";
 
 import "./tailwind.css";
-import { honeypot } from "./utils/honeypot.server";
+import { getHoneypot } from "./utils/honeypot.server";
 import { getEnv } from "./utils/env.server";
 import { getUserId, logout } from "./utils/auth.server.ts";
 import { WorkerDb } from "lib/db";
@@ -23,6 +23,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
   const authSessionStorage = getAuthSessionStorage(context.cloudflare.env);
 
+  const honeypot = getHoneypot(context.cloudflare.env);
   const honeyProps = honeypot.getInputProps();
   const userId = await getUserId(authSessionStorage, db, request);
   // TODO: Maybe better cache this.

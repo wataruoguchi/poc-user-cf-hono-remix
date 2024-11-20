@@ -1,6 +1,7 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import { WorkerDb } from "lib/db";
+import { UserRepository } from "repositories/user";
 
 export const meta: MetaFunction = () => {
   return [
@@ -13,10 +14,7 @@ export const loader = async (args: LoaderFunctionArgs) => {
   const extra = args.context.extra;
   const cloudflare = args.context.cloudflare;
   const db = await WorkerDb.getInstance(cloudflare.env);
-  const nOfUsers = await db
-    .selectFrom("person")
-    .select(({ fn }) => [fn.countAll<number>().as("count")])
-    .executeTakeFirst();
+  const nOfUsers = await UserRepository.getTotalNumberOfUsers(db);
   return { extra, cloudflare, nOfUsers };
 };
 
@@ -25,6 +23,10 @@ export default function Index() {
 
   return (
     <div className="flex h-screen items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <Link to="/login">Log In</Link>
+        <Link to="/signup">Sign Up</Link>
+      </div>
       <div className="flex flex-col items-center gap-16">
         <header className="flex flex-col items-center gap-9">
           <h1 className="leading text-2xl font-bold text-gray-800 dark:text-gray-100">

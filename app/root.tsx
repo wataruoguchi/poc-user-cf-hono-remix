@@ -1,13 +1,47 @@
-import type { LinksFunction } from "@remix-run/cloudflare";
+import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import {
+  json,
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
+import { HoneypotProvider } from "remix-utils/honeypot/react";
 
 import "./tailwind.css";
+import { honeypot } from "./utils/honeypot.server";
+import { getEnv } from "./utils/env.server";
+import { getUserId, logout } from "./utils/auth.server.ts";
+import { WorkerDb } from "lib/db";
+import { useOptionalUser } from "./utils/user";
+import { getAuthSessionStorage } from "./utils/session.server.ts";
+import { UserRepository } from "repositories/user.ts";
+
+export async function loader({ context, request }: LoaderFunctionArgs) {
+  const db = await WorkerDb.getInstance(context.cloudflare.env);
+  const authSessionStorage = getAuthSessionStorage(context.cloudflare.env);
+
+  const honeyProps = honeypot.getInputProps();
+  const userId = await getUserId(authSessionStorage, db, request);
+  // TODO: Maybe better cache this.
+  const user = userId ? await UserRepository.getUser(db, { id: userId }) : null;
+  if (userId && !user) {
+    console.info("something weird happened");
+    // something weird happened... The user is authenticated but we can't find
+    // them in the database. Maybe they were deleted? Let's log them out.
+    await logout(authSessionStorage, db, {
+      request,
+      redirectTo: "/",
+    });
+  }
+  return json({
+    user,
+    env: getEnv(context.cloudflare.env),
+    honeyProps,
+  });
+}
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -23,6 +57,8 @@ export const links: LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const { env } = useLoaderData<typeof loader>();
+  const user = useOptionalUser();
   return (
     <html lang="en">
       <head>
@@ -32,7 +68,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
+        {user ? <div>Logged in as {user.username}</div> : null}
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(env)}`,
+          }}
+        />
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -40,6 +82,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function App() {
+function App() {
   return <Outlet />;
+}
+
+export default function AppWithProviders() {
+  const data = useLoaderData<typeof loader>();
+  return (
+    <HoneypotProvider {...data.honeyProps}>
+      <App />
+    </HoneypotProvider>
+  );
 }

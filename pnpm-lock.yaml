@@ -4,6 +4,12 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  vite@>=5.1.0 <=5.1.6: '>=5.1.7'
+  vite@>=5.0.0 <=5.1.7: '>=5.1.8'
+  vite@>=5.0.0 <5.1.8: '>=5.1.8'
+  cookie@<0.7.0: '>=0.7.0'
+
 dependencies:
   '@conform-to/react':
     specifier: ^1.2.2
@@ -2226,7 +2232,7 @@ packages:
       '@remix-run/router': 1.20.0
       '@types/cookie': 0.6.0
       '@web3-storage/multipart-parser': 1.0.0
-      cookie: 0.6.0
+      cookie: 0.7.2
       set-cookie-parser: 2.7.1
       source-map: 0.7.4
       turbo-stream: 2.4.0
@@ -2244,7 +2250,7 @@ packages:
       '@remix-run/router': 1.21.0
       '@types/cookie': 0.6.0
       '@web3-storage/multipart-parser': 1.0.0
-      cookie: 0.6.0
+      cookie: 0.7.2
       set-cookie-parser: 2.7.1
       source-map: 0.7.4
       turbo-stream: 2.4.0
@@ -3298,10 +3304,6 @@ packages:
   /cookie-signature@1.2.2:
     resolution: {integrity: sha512-D76uU73ulSXrD1UXF4KE2TMxVVwhsnCgfAyTg9k8P6KGZjlXKrOLe4dJQKI3Bxi5wjesZoFXJWElNWBjPZMbhg==}
     engines: {node: '>=6.6.0'}
-
-  /cookie@0.6.0:
-    resolution: {integrity: sha512-U71cyTamuh1CRNCfpGY6to28lxvNwPG4Guz/EVjgf3Jmzv0vlDp1atT9eS5dDjMYHucpHbWns6Lwf3BKz6svdw==}
-    engines: {node: '>= 0.6'}
 
   /cookie@0.7.1:
     resolution: {integrity: sha512-6DnInpx7SJ2AK3+CTUE/ZM0vWTUboZCegxhC2xiIydHR9jNuTAASBrfEpHhiGOZw/nX51bHt6YQl8jsGo4y/0w==}

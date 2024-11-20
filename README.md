@@ -27,8 +27,8 @@ pnpx supabase gen types --lang=typescript --project-id <project ref, like `abcde
 pnpm run migrate -- create user # Run `kysely-migration-cli` internally.
 pnpm run migrate -- up # It created the `user` table on Supabase!
 ### NOTE: The type generator by supabase generates string type for datetime. This is critical as Kysely generates it to Date. Let's go back to `kysely-codegen`.
-# pnpx supabase pull # Update the migration files under `supabase/migrations`
-# pnpm run supabase:gen # Update the type declaration. We don't need to depend on `kysely-codegen`
+pnpx supabase db pull # Update the migration files under `supabase/migrations`
+# pnpm run supabase:gen # Update the type declaration. We don't need to depend on `kysely-codegen`. This generates string type for timestamps while Kysely wants it to be Date.
 pnpm run generate-dotenv-for-ky-typegen # Only once. It generates the `.env` file that has to be used by only kysely-codegen
 pnpm run ky-typegen
 ```

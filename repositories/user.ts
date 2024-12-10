@@ -89,6 +89,17 @@ export class UserRepository {
       .select(({ fn }) => [fn.countAll<number>().as("count")])
       .executeTakeFirst();
   }
+  static async updateEmail(
+    db: WorkerDB,
+    id: Person["id"],
+    email: Person["email"]
+  ) {
+    return db
+      .updateTable("person")
+      .where("id", "=", id)
+      .set({ email })
+      .execute();
+  }
   static async updateUsername(
     db: WorkerDB,
     id: Person["id"],

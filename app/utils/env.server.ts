@@ -6,6 +6,8 @@ const schema = z.object({
   SUPABASE_URI: z.string(),
   HONEYPOT_SECRET: z.string(),
   SESSION_SECRET: z.string(),
+  RESEND_API_KEY: z.string(),
+  MOCKS: z.string().transform((value) => value === "true"),
 });
 
 /**

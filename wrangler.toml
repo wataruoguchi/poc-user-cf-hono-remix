@@ -22,6 +22,7 @@ binding = "ASSETS"
 # - https://developers.cloudflare.com/pages/functions/bindings/#secrets
 [vars]
 MY_VAR = "My var in wrangler.toml"
+MOCKS = "true"
 ENVIRONMENT = "development"
 
 # Bind the Workers AI model catalog. Run machine learning models, powered by serverless GPUs, on Cloudflare’s global network

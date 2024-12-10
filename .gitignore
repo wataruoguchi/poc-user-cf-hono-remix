@@ -14,3 +14,6 @@ worker-configuration.d.ts
 db/supabase.types.ts
 
 .zshrc
+
+# Epic React
+tests/fixtures/email

@@ -50,7 +50,7 @@ export default defineConfig(({ mode }) => ({
     serverAdapter({
       adapter,
       getLoadContext,
-      entry: "server/index.ts",
+      entry: mode === "production" ? "server/index.ts" : "server/dev.ts",
     }),
     tsconfigPaths(),
   ],

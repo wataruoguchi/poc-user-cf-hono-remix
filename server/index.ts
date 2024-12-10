@@ -1,17 +1,5 @@
-import { Hono } from "hono";
+import app from "./hono";
 
-const app = new Hono<{ Bindings: Env }>();
-
-app.use(async (c, next) => {
-  await next();
-  c.header("X-Powered-By", "Remix and Hono");
-});
-
-app.get("/api", (c) => {
-  return c.json({
-    message: "Hello, World!",
-    var: c.env.MY_VAR,
-  });
-});
+console.log("This is the production server. You are not supposed to see this.");
 
 export default app;

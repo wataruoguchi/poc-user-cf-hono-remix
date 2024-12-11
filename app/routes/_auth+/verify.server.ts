@@ -3,7 +3,7 @@ import { parseWithZod } from "@conform-to/zod";
 import { json } from "@remix-run/cloudflare";
 import { WorkerDb, WorkerDB } from "lib/db.ts";
 import { z } from "zod";
-import { getAuthSessionStorage } from "~/utils/session.server.ts";
+import { AuthSessionStorage } from "~/utils/session.server.ts";
 import { requireUserId } from "../../utils/auth.server.ts";
 import { getDomainUrl } from "../../utils/misc.ts";
 import { handleVerification as handleChangeEmailVerification } from "../settings+/profile+/change-email.server.tsx";
@@ -50,7 +50,7 @@ export function getRedirectToUrl({
 }
 
 export async function requireRecentVerification(
-  authSessionStorage: ReturnType<typeof getAuthSessionStorage>,
+  authSessionStorage: AuthSessionStorage,
   db: WorkerDB,
   request: Request
 ) {

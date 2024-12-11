@@ -15,7 +15,10 @@ import { StatusButton } from "~/components/ui/status-button.tsx";
 import { requireUserId } from "~/utils/auth.server.ts";
 import { WorkerDB, WorkerDb } from "lib/db.ts";
 import { useDoubleCheck } from "~/utils/misc.ts";
-import { getAuthSessionStorage } from "~/utils/session.server.ts";
+import {
+  AuthSessionStorage,
+  getAuthSessionStorage,
+} from "~/utils/session.server.ts";
 import { NameSchema, UsernameSchema } from "~/utils/user-validation.ts";
 import { UserRepository } from "repositories/user";
 
@@ -44,7 +47,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 type ProfileActionArgs = {
   db: WorkerDB;
-  authSessionStorage: ReturnType<typeof getAuthSessionStorage>;
+  authSessionStorage: AuthSessionStorage;
   request: Request;
   userId: string;
   formData: FormData;

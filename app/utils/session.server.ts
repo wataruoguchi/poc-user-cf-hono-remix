@@ -1,5 +1,6 @@
 import { createCookieSessionStorage } from "@remix-run/cloudflare";
 
+export type AuthSessionStorage = ReturnType<typeof getAuthSessionStorage>;
 export function getAuthSessionStorage(env: Env) {
   const authSessionStorage = createCookieSessionStorage({
     cookie: {

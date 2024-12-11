@@ -22,13 +22,19 @@ import { StatusButton } from "~/components/ui/status-button.tsx";
 import { requireAnonymous, sessionKey, signup } from "~/utils/auth.server";
 import { checkHoneypot, getHoneypot } from "~/utils/honeypot.server";
 import { useIsPending } from "~/utils/misc.ts";
-import { getAuthSessionStorage } from "~/utils/session.server";
+import {
+  AuthSessionStorage,
+  getAuthSessionStorage,
+} from "~/utils/session.server";
 import {
   NameSchema,
   PasswordAndConfirmPasswordSchema,
   UsernameSchema,
 } from "~/utils/user-validation";
-import { getVerifySessionStorage } from "~/utils/verification.server";
+import {
+  getVerifySessionStorage,
+  VerifySessionStorage,
+} from "~/utils/verification.server";
 import { WorkerDb, WorkerDB } from "../../../lib/db";
 import { UserRepository } from "repositories/user";
 
@@ -49,8 +55,8 @@ const SignupFormSchema = z
 
 async function requireOnboardingEmail(
   db: WorkerDB,
-  authSessionStorage: ReturnType<typeof getAuthSessionStorage>,
-  verifySessionStorage: ReturnType<typeof getVerifySessionStorage>,
+  authSessionStorage: AuthSessionStorage,
+  verifySessionStorage: VerifySessionStorage,
   request: Request
 ) {
   await requireAnonymous(authSessionStorage, db, request);

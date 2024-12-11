@@ -2,7 +2,7 @@ import { json } from "@remix-run/cloudflare";
 import { WorkerDB } from "lib/db.ts";
 import { UserRepository } from "repositories/user.ts";
 import { requireUserId } from "./auth.server.ts";
-import { getAuthSessionStorage } from "./session.server.ts";
+import { AuthSessionStorage } from "./session.server.ts";
 
 export type Action = "create" | "read" | "update" | "delete";
 export type Entity = "user" | "note";
@@ -12,7 +12,7 @@ export type PermissionString =
   | `${Action}:${Entity}:${Access}`;
 
 export async function requireUserWithPermission(
-  authSessionStorage: ReturnType<typeof getAuthSessionStorage>,
+  authSessionStorage: AuthSessionStorage,
   db: WorkerDB,
   request: Request,
   permission: PermissionString

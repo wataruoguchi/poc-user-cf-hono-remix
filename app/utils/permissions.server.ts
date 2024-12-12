@@ -1,5 +1,5 @@
 import { json } from "@remix-run/cloudflare";
-import { WorkerDB } from "lib/db.ts";
+import { DB } from "lib/db.ts";
 import { UserRepository } from "repositories/user.ts";
 import { requireUserId } from "./auth.server.ts";
 
@@ -12,7 +12,7 @@ export type PermissionString =
 
 export async function requireUserWithPermission(
   env: Env,
-  db: WorkerDB,
+  db: DB,
   request: Request,
   permission: PermissionString
 ) {

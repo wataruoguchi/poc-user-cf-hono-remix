@@ -13,7 +13,7 @@ import { ErrorList, Field } from "~/components/forms.tsx";
 import { Icon } from "~/components/ui/icon.tsx";
 import { StatusButton } from "~/components/ui/status-button.tsx";
 import { requireUserId } from "~/utils/auth.server.ts";
-import { WorkerDB, WorkerDb } from "lib/db.ts";
+import { DB, WorkerDb } from "lib/db.ts";
 import { useDoubleCheck } from "~/utils/misc.ts";
 import {
   AuthSessionStorage,
@@ -43,7 +43,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 type ProfileActionArgs = {
-  db: WorkerDB;
+  db: DB;
   authSessionStorage: AuthSessionStorage;
   request: Request;
   userId: string;

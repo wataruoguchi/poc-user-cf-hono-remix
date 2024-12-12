@@ -29,7 +29,7 @@ import {
   UsernameSchema,
 } from "~/utils/user-validation";
 import { getVerifySessionStorage } from "~/utils/verification.server";
-import { WorkerDb, WorkerDB } from "../../../lib/db";
+import { WorkerDb, DB } from "../../../lib/db";
 import { UserRepository } from "repositories/user";
 
 export const onboardingEmailSessionKey = "onboardingEmail";
@@ -47,11 +47,7 @@ const SignupFormSchema = z
   })
   .and(PasswordAndConfirmPasswordSchema);
 
-async function requireOnboardingEmail(
-  env: Env,
-  db: WorkerDB,
-  request: Request
-) {
+async function requireOnboardingEmail(env: Env, db: DB, request: Request) {
   await requireAnonymous(env, db, request);
   const verifySession = await getVerifySessionStorage(env).getSession(
     request.headers.get("cookie")

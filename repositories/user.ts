@@ -1,11 +1,8 @@
-import { Person, WorkerDB } from "lib/db";
+import { DB, Person } from "lib/db";
 import { parsePermissionString } from "~/utils/permissions.server";
 
 export class UserRepository {
-  static async createUser(
-    db: WorkerDB,
-    user: Pick<Person, "email" | "username">
-  ) {
+  static async createUser(db: DB, user: Pick<Person, "email" | "username">) {
     return db
       .insertInto("person")
       .values({
@@ -17,7 +14,7 @@ export class UserRepository {
       .executeTakeFirstOrThrow();
   }
   static async getUserWithPermissions(
-    db: WorkerDB,
+    db: DB,
     id: Person["id"],
     permissionData: ReturnType<typeof parsePermissionString>
   ) {
@@ -40,17 +37,13 @@ export class UserRepository {
       )
       .executeTakeFirst();
   }
-  static async getTotalNumberOfUsers(db: WorkerDB) {
+  static async getTotalNumberOfUsers(db: DB) {
     return db
       .selectFrom("person")
       .select(({ fn }) => [fn.countAll<number>().as("count")])
       .executeTakeFirst();
   }
-  static async updateEmail(
-    db: WorkerDB,
-    id: Person["id"],
-    email: Person["email"]
-  ) {
+  static async updateEmail(db: DB, id: Person["id"], email: Person["email"]) {
     return db
       .updateTable("person")
       .where("id", "=", id)
@@ -58,7 +51,7 @@ export class UserRepository {
       .execute();
   }
   static async updateUsername(
-    db: WorkerDB,
+    db: DB,
     id: Person["id"],
     username: Person["username"]
   ) {
@@ -68,11 +61,11 @@ export class UserRepository {
       .set({ username })
       .execute();
   }
-  static async deleteUser(db: WorkerDB, id: Person["id"]) {
+  static async deleteUser(db: DB, id: Person["id"]) {
     return db.deleteFrom("person").where("id", "=", id).execute();
   }
   static async getUser(
-    db: WorkerDB,
+    db: DB,
     where:
       | { id: Person["id"] }
       | { username: Person["username"] }
@@ -93,7 +86,7 @@ export class UserRepository {
       .executeTakeFirst();
   }
   static async getPasswordHash(
-    db: WorkerDB,
+    db: DB,
     where:
       | { id: Person["id"] }
       | { username: Person["username"] }

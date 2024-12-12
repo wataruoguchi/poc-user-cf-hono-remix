@@ -8,13 +8,13 @@ import {
 import { sendEmail } from "../../../utils/email.server.ts";
 import { VerifySessionStorage } from "../../../utils/verification.server.ts";
 import { newEmailAddressSessionKey } from "./change-email.tsx";
-import { WorkerDB } from "lib/db.ts";
+import { DB } from "lib/db.ts";
 import { UserRepository } from "repositories/user.ts";
 
 export async function handleVerification(
   env: Env,
   verifySessionStorage: VerifySessionStorage,
-  db: WorkerDB,
+  db: DB,
   { request, submission }: VerifyFunctionArgs
 ) {
   await requireRecentVerification(env, db, request);

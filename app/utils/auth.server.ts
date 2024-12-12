@@ -1,6 +1,6 @@
 import { redirect } from "@remix-run/cloudflare";
 import bcrypt from "bcryptjs";
-import { Person, WorkerDB } from "lib/db";
+import { DB, Person } from "lib/db";
 import { safeRedirect } from "remix-utils/safe-redirect";
 import { SessionRepository } from "repositories/session";
 import { UserRepository } from "repositories/user";
@@ -13,7 +13,7 @@ export const getSessionExpirationDate = () =>
 
 export const sessionKey = "sessionId";
 
-export async function getUserId(env: Env, db: WorkerDB, request: Request) {
+export async function getUserId(env: Env, db: DB, request: Request) {
   const authSession = await getAuthSessionStorage(env).getSession(
     request.headers.get("cookie")
   );
@@ -34,7 +34,7 @@ export async function getUserId(env: Env, db: WorkerDB, request: Request) {
 
 export async function requireUserId(
   env: Env,
-  db: WorkerDB,
+  db: DB,
   request: Request,
   { redirectTo }: { redirectTo?: string | null } = {}
 ) {
@@ -54,11 +54,7 @@ export async function requireUserId(
   return userId;
 }
 
-export async function requireAnonymous(
-  env: Env,
-  db: WorkerDB,
-  request: Request
-) {
+export async function requireAnonymous(env: Env, db: DB, request: Request) {
   const userId = await getUserId(env, db, request);
   if (userId) {
     throw redirect("/");
@@ -66,7 +62,7 @@ export async function requireAnonymous(
 }
 
 export async function login(
-  db: WorkerDB,
+  db: DB,
   {
     username,
     password,
@@ -83,7 +79,7 @@ export async function login(
 }
 
 export async function signup(
-  db: WorkerDB,
+  db: DB,
   {
     email,
     username,
@@ -115,7 +111,7 @@ export async function signup(
 
 export async function logout(
   authSessionStorage: ReturnType<typeof getAuthSessionStorage>,
-  db: WorkerDB,
+  db: DB,
   {
     request,
     redirectTo = "/",
@@ -147,7 +143,7 @@ export async function getPasswordHash(password: string) {
 }
 
 export async function verifyUserPassword(
-  db: WorkerDB,
+  db: DB,
   where: { id: Person["id"] } | { username: Person["username"] },
   password: string
 ): Promise<{ id: Person["id"] } | null> {

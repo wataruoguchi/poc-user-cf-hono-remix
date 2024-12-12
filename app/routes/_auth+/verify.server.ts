@@ -1,7 +1,7 @@
 import { type Submission } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
 import { json } from "@remix-run/cloudflare";
-import { WorkerDb, WorkerDB } from "lib/db.ts";
+import { DB, WorkerDb } from "lib/db.ts";
 import { z } from "zod";
 import { requireUserId } from "../../utils/auth.server.ts";
 import { getDomainUrl } from "../../utils/misc.ts";
@@ -50,7 +50,7 @@ export function getRedirectToUrl({
 
 export async function requireRecentVerification(
   env: Env,
-  db: WorkerDB,
+  db: DB,
   request: Request
 ) {
   const userId = await requireUserId(env, db, request);

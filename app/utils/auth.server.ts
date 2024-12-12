@@ -5,7 +5,7 @@ import { safeRedirect } from "remix-utils/safe-redirect";
 import { SessionRepository } from "repositories/session";
 import { UserRepository } from "repositories/user";
 import { combineHeaders } from "./misc";
-import { AuthSessionStorage, getAuthSessionStorage } from "./session.server";
+import { getAuthSessionStorage } from "./session.server";
 
 export const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30; // 30 days
 export const getSessionExpirationDate = () =>
@@ -13,12 +13,8 @@ export const getSessionExpirationDate = () =>
 
 export const sessionKey = "sessionId";
 
-export async function getUserId(
-  authSessionStorage: AuthSessionStorage,
-  db: WorkerDB,
-  request: Request
-) {
-  const authSession = await authSessionStorage.getSession(
+export async function getUserId(env: Env, db: WorkerDB, request: Request) {
+  const authSession = await getAuthSessionStorage(env).getSession(
     request.headers.get("cookie")
   );
   const sessionId = authSession.get(sessionKey);
@@ -27,7 +23,9 @@ export async function getUserId(
   if (!session) {
     throw redirect("/", {
       headers: {
-        "set-cookie": await authSessionStorage.destroySession(authSession),
+        "set-cookie": await getAuthSessionStorage(env).destroySession(
+          authSession
+        ),
       },
     });
   }
@@ -35,12 +33,12 @@ export async function getUserId(
 }
 
 export async function requireUserId(
-  authSessionStorage: AuthSessionStorage,
+  env: Env,
   db: WorkerDB,
   request: Request,
   { redirectTo }: { redirectTo?: string | null } = {}
 ) {
-  const userId = await getUserId(authSessionStorage, db, request);
+  const userId = await getUserId(env, db, request);
   if (!userId) {
     const requestUrl = new URL(request.url);
     redirectTo =
@@ -57,11 +55,11 @@ export async function requireUserId(
 }
 
 export async function requireAnonymous(
-  authSessionStorage: AuthSessionStorage,
+  env: Env,
   db: WorkerDB,
   request: Request
 ) {
-  const userId = await getUserId(authSessionStorage, db, request);
+  const userId = await getUserId(env, db, request);
   if (userId) {
     throw redirect("/");
   }

@@ -30,26 +30,19 @@ const LoginFormSchema = z.object({
 
 export async function loader({ context, request }: LoaderFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
-  await requireAnonymous(
-    getAuthSessionStorage(context.cloudflare.env),
-    db,
-    request
-  );
+
+  await requireAnonymous(context.cloudflare.env, db, request);
 
   return json({});
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
-  await requireAnonymous(
-    getAuthSessionStorage(context.cloudflare.env),
-    db,
-    request
-  );
+
+  await requireAnonymous(context.cloudflare.env, db, request);
 
   const formData = await request.formData();
-  const honeypot = getHoneypot(context.cloudflare.env);
-  checkHoneypot(honeypot, formData);
+  checkHoneypot(getHoneypot(context.cloudflare.env), formData);
 
   const {
     cloudflare: { env },
@@ -58,8 +51,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     schema: (intent) =>
       LoginFormSchema.transform(async (data, ctx) => {
         if (intent !== null) return { ...data, session: null };
-
-        const db = await WorkerDb.getInstance(env);
         const session = await login(db, data);
         if (!session) {
           ctx.addIssue({

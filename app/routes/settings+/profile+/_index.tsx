@@ -29,11 +29,8 @@ const ProfileFormSchema = z.object({
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
-  const userId = await requireUserId(
-    getAuthSessionStorage(context.cloudflare.env),
-    db,
-    request
-  );
+
+  const userId = await requireUserId(context.cloudflare.env, db, request);
   const user = await UserRepository.getUser(db, { id: userId });
   if (!user) invariantResponse(user, "User not found", { status: 404 });
 
@@ -58,7 +55,8 @@ const deleteDataActionIntent = "delete-data";
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
   const authSessionStorage = getAuthSessionStorage(context.cloudflare.env);
-  const userId = await requireUserId(authSessionStorage, db, request);
+
+  const userId = await requireUserId(context.cloudflare.env, db, request);
   const formData = await request.formData();
   const intent = formData.get("intent");
   switch (intent) {

@@ -17,7 +17,7 @@ export async function handleVerification(
   db: WorkerDB,
   { request, submission }: VerifyFunctionArgs
 ) {
-  await requireRecentVerification(verifySessionStorage, db, request);
+  await requireRecentVerification(env, db, request);
   invariant(
     submission.status === "success",
     "Submission should be successful by now"

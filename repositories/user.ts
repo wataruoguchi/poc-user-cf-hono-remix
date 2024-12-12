@@ -16,27 +16,6 @@ export class UserRepository {
       .returningAll()
       .executeTakeFirstOrThrow();
   }
-  static async getUser(
-    db: WorkerDB,
-    where:
-      | { id: Person["id"] }
-      | { username: Person["username"] }
-      | { email: Person["email"] }
-  ) {
-    const whereClause =
-      "id" in where ? "id" : "username" in where ? "username" : "email";
-    const value =
-      "id" in where
-        ? where.id
-        : "username" in where
-        ? where.username
-        : where.email;
-    return db
-      .selectFrom("person")
-      .where(whereClause, "=", value)
-      .select(["id", "username", "email", "created_at"])
-      .executeTakeFirst();
-  }
   static async getUserWithPermissions(
     db: WorkerDB,
     id: Person["id"],
@@ -59,28 +38,6 @@ export class UserRepository {
             : eb.val(true),
         ])
       )
-      .executeTakeFirst();
-  }
-  static async getPasswordHash(
-    db: WorkerDB,
-    where:
-      | { id: Person["id"] }
-      | { username: Person["username"] }
-      | { email: Person["email"] }
-  ) {
-    const whereClause =
-      "id" in where ? "id" : "username" in where ? "username" : "email";
-    const value =
-      "id" in where
-        ? where.id
-        : "username" in where
-        ? where.username
-        : where.email;
-    return await db
-      .selectFrom("person")
-      .innerJoin("password", "person.id", "password.person_id")
-      .where(whereClause, "=", value)
-      .select(["person.id", "password.hash"])
       .executeTakeFirst();
   }
   static async getTotalNumberOfUsers(db: WorkerDB) {
@@ -113,5 +70,48 @@ export class UserRepository {
   }
   static async deleteUser(db: WorkerDB, id: Person["id"]) {
     return db.deleteFrom("person").where("id", "=", id).execute();
+  }
+  static async getUser(
+    db: WorkerDB,
+    where:
+      | { id: Person["id"] }
+      | { username: Person["username"] }
+      | { email: Person["email"] }
+  ) {
+    const whereClause =
+      "id" in where ? "id" : "username" in where ? "username" : "email";
+    const value =
+      "id" in where
+        ? where.id
+        : "username" in where
+        ? where.username
+        : where.email;
+    return db
+      .selectFrom("person")
+      .where(whereClause, "=", value)
+      .select(["id", "username", "email", "created_at"])
+      .executeTakeFirst();
+  }
+  static async getPasswordHash(
+    db: WorkerDB,
+    where:
+      | { id: Person["id"] }
+      | { username: Person["username"] }
+      | { email: Person["email"] }
+  ) {
+    const whereClause =
+      "id" in where ? "id" : "username" in where ? "username" : "email";
+    const value =
+      "id" in where
+        ? where.id
+        : "username" in where
+        ? where.username
+        : where.email;
+    return await db
+      .selectFrom("person")
+      .innerJoin("password", "person.id", "password.person_id")
+      .where(whereClause, "=", value)
+      .select(["person.id", "password.hash"])
+      .executeTakeFirst();
   }
 }

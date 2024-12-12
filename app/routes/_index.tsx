@@ -11,11 +11,11 @@ export const meta: MetaFunction = () => {
 };
 
 export const loader = async (args: LoaderFunctionArgs) => {
-  const extra = args.context.extra;
-  const cloudflare = args.context.cloudflare;
-  const db = await WorkerDb.getInstance(cloudflare.env);
+  const db = await WorkerDb.getInstance(args.context.cloudflare.env);
+
   const nOfUsers = await UserRepository.getTotalNumberOfUsers(db);
-  return { extra, cloudflare, nOfUsers };
+  const { cloudflare, extra } = args.context;
+  return { cloudflare, extra, nOfUsers };
 };
 
 export default function Index() {

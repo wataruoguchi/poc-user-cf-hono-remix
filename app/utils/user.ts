@@ -1,24 +1,22 @@
 import { type SerializeFrom } from "@remix-run/cloudflare";
 import { useRouteLoaderData } from "@remix-run/react";
+import { z } from "zod";
 import { type loader as rootLoader } from "~/root.tsx";
+
+// Temporary schema to make sure the user is a valid user
+const userSchema = z.object({
+  id: z.string(),
+});
 
 function isUser(
   user: unknown
 ): user is SerializeFrom<typeof rootLoader>["user"] {
-  return !!(
-    user &&
-    typeof user === "object" &&
-    "id" in user &&
-    typeof user.id === "string"
-  );
+  return userSchema.safeParse(user).success;
 }
 
 export function useOptionalUser() {
   const data = useRouteLoaderData<typeof rootLoader>("root");
-  if (!data || !isUser(data.user)) {
-    return undefined;
-  }
-  return data.user;
+  if (data && isUser(data.user)) return data.user;
 }
 
 export function useUser() {

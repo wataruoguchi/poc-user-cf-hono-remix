@@ -16,10 +16,8 @@ import { WorkerDb } from "lib/db.ts";
 // import { sendEmail } from "~/utils/email.server.ts";
 import { useIsPending } from "~/utils/misc.ts";
 import { EmailSchema } from "~/utils/user-validation.ts";
-import { getVerifySessionStorage } from "~/utils/verification.server.ts";
 // import { EmailChangeEmail } from "./change-email.server.tsx";
 import { UserRepository } from "repositories/user.ts";
-import { getAuthSessionStorage } from "~/utils/session.server.ts";
 
 export const newEmailAddressSessionKey = "new-email-address";
 
@@ -29,16 +27,13 @@ const ChangeEmailSchema = z.object({
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
-  const authSessionStorage = getAuthSessionStorage(context.cloudflare.env);
-  await requireRecentVerification(
-    getVerifySessionStorage(context.cloudflare.env),
-    db,
-    request
-  );
-  const userId = await requireUserId(authSessionStorage, db, request);
+
+  await requireRecentVerification(context.cloudflare.env, db, request);
+  const userId = await requireUserId(context.cloudflare.env, db, request);
   const user = await UserRepository.getUser(db, {
     id: userId,
   });
+
   if (!user) {
     const params = new URLSearchParams({ redirectTo: request.url });
     throw redirect(`/login?${params}`);
@@ -49,6 +44,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
   // const authSessionStorage = getAuthSessionStorage(context.cloudflare.env);
+
   // const userId = await requireUserId(authSessionStorage, db, request);
   const formData = await request.formData();
   const submission = await parseWithZod(formData, {

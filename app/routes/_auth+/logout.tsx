@@ -9,5 +9,6 @@ export async function loader() {
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
+
   return logout(getAuthSessionStorage(context.cloudflare.env), db, { request });
 }

@@ -16,7 +16,6 @@ import { StatusButton } from "~/components/ui/status-button.tsx";
 import { checkHoneypot, getHoneypot } from "~/utils/honeypot.server.ts";
 import { useIsPending } from "~/utils/misc.ts";
 import { EmailSchema } from "~/utils/user-validation.ts";
-import { getAuthSessionStorage } from "~/utils/session.server";
 import { requireAnonymous } from "~/utils/auth.server";
 import { UserRepository } from "repositories/user";
 import { sendEmail } from "~/utils/email.server";
@@ -25,18 +24,11 @@ import { onboardingEmailSessionKey } from "./onboarding";
 
 const SignupSchema = z.object({
   email: EmailSchema,
-  // username: UsernameSchema,
-  // password: PasswordSchema,
-  // confirmPassword: PasswordSchema,
-  // agreeToTermsOfServiceAndPrivacyPolicy: z.boolean(),
-  // remember: z.boolean().optional(),
-  // redirectTo: z.string().optional(),
 });
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
-  const authSessionStorage = getAuthSessionStorage(context.cloudflare.env);
-  await requireAnonymous(authSessionStorage, db, request);
+  await requireAnonymous(context.cloudflare.env, db, request);
 
   const formData = await request.formData();
   checkHoneypot(getHoneypot(context.cloudflare.env), formData);

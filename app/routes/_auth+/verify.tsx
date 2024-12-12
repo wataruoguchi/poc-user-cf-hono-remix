@@ -29,9 +29,8 @@ export const VerifySchema = z.object({
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const formData = await request.formData();
-  const honeypot = getHoneypot(context.cloudflare.env);
-  checkHoneypot(honeypot, formData);
-  return validateRequest(request, formData);
+  checkHoneypot(getHoneypot(context.cloudflare.env), formData);
+  return validateRequest(context.cloudflare.env, request, formData);
 }
 
 export default function VerifyRoute() {

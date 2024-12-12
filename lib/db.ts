@@ -7,24 +7,21 @@ import { DB as KyselyCodegenDB } from "kysely-codegen";
 import { PostgresJSDialect } from "kysely-postgres-js";
 import postgres from "postgres";
 
-export type DB = KyselyCodegenDB;
 export type Person = KyselyCodegenDB["person"];
 export type Session = KyselyCodegenDB["session"];
-export type WorkerDB = Kysely<DB>;
+export type DB = Kysely<KyselyCodegenDB>;
 
 export class WorkerDb {
-  private static instance: Kysely<DB> | null = null;
+  private static instance: Kysely<KyselyCodegenDB> | null = null;
 
-  static async getInstance(
-    env: Pick<Env, "SUPABASE_URI">
-  ): Promise<Kysely<DB>> {
+  static async getInstance(env: Pick<Env, "SUPABASE_URI">): Promise<DB> {
     const pg = postgres(env.SUPABASE_URI);
     /**
      * The following line is to check if the connection is successful.
      */
     await pg.unsafe("SELECT 1");
 
-    this.instance = new Kysely<DB>({
+    this.instance = new Kysely<KyselyCodegenDB>({
       dialect: new PostgresJSDialect({
         postgres: pg,
       }),

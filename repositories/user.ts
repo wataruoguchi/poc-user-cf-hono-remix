@@ -1,11 +1,8 @@
-import { Person, WorkerDB } from "lib/db";
+import { DB, Person } from "lib/db";
 import { parsePermissionString } from "~/utils/permissions.server";
 
 export class UserRepository {
-  static async createUser(
-    db: WorkerDB,
-    user: Pick<Person, "email" | "username">
-  ) {
+  static async createUser(db: DB, user: Pick<Person, "email" | "username">) {
     return db
       .insertInto("person")
       .values({
@@ -16,29 +13,8 @@ export class UserRepository {
       .returningAll()
       .executeTakeFirstOrThrow();
   }
-  static async getUser(
-    db: WorkerDB,
-    where:
-      | { id: Person["id"] }
-      | { username: Person["username"] }
-      | { email: Person["email"] }
-  ) {
-    const whereClause =
-      "id" in where ? "id" : "username" in where ? "username" : "email";
-    const value =
-      "id" in where
-        ? where.id
-        : "username" in where
-        ? where.username
-        : where.email;
-    return db
-      .selectFrom("person")
-      .where(whereClause, "=", value)
-      .select(["id", "username", "email", "created_at"])
-      .executeTakeFirst();
-  }
   static async getUserWithPermissions(
-    db: WorkerDB,
+    db: DB,
     id: Person["id"],
     permissionData: ReturnType<typeof parsePermissionString>
   ) {
@@ -61,8 +37,56 @@ export class UserRepository {
       )
       .executeTakeFirst();
   }
+  static async getTotalNumberOfUsers(db: DB) {
+    return db
+      .selectFrom("person")
+      .select(({ fn }) => [fn.countAll<number>().as("count")])
+      .executeTakeFirst();
+  }
+  static async updateEmail(db: DB, id: Person["id"], email: Person["email"]) {
+    return db
+      .updateTable("person")
+      .where("id", "=", id)
+      .set({ email })
+      .execute();
+  }
+  static async updateUsername(
+    db: DB,
+    id: Person["id"],
+    username: Person["username"]
+  ) {
+    return db
+      .updateTable("person")
+      .where("id", "=", id)
+      .set({ username })
+      .execute();
+  }
+  static async deleteUser(db: DB, id: Person["id"]) {
+    return db.deleteFrom("person").where("id", "=", id).execute();
+  }
+  static async getUser(
+    db: DB,
+    where:
+      | { id: Person["id"] }
+      | { username: Person["username"] }
+      | { email: Person["email"] }
+  ) {
+    const whereClause =
+      "id" in where ? "id" : "username" in where ? "username" : "email";
+    const value =
+      "id" in where
+        ? where.id
+        : "username" in where
+        ? where.username
+        : where.email;
+    return db
+      .selectFrom("person")
+      .where(whereClause, "=", value)
+      .select(["id", "username", "email", "created_at"])
+      .executeTakeFirst();
+  }
   static async getPasswordHash(
-    db: WorkerDB,
+    db: DB,
     where:
       | { id: Person["id"] }
       | { username: Person["username"] }
@@ -82,36 +106,5 @@ export class UserRepository {
       .where(whereClause, "=", value)
       .select(["person.id", "password.hash"])
       .executeTakeFirst();
-  }
-  static async getTotalNumberOfUsers(db: WorkerDB) {
-    return db
-      .selectFrom("person")
-      .select(({ fn }) => [fn.countAll<number>().as("count")])
-      .executeTakeFirst();
-  }
-  static async updateEmail(
-    db: WorkerDB,
-    id: Person["id"],
-    email: Person["email"]
-  ) {
-    return db
-      .updateTable("person")
-      .where("id", "=", id)
-      .set({ email })
-      .execute();
-  }
-  static async updateUsername(
-    db: WorkerDB,
-    id: Person["id"],
-    username: Person["username"]
-  ) {
-    return db
-      .updateTable("person")
-      .where("id", "=", id)
-      .set({ username })
-      .execute();
-  }
-  static async deleteUser(db: WorkerDB, id: Person["id"]) {
-    return db.deleteFrom("person").where("id", "=", id).execute();
   }
 }

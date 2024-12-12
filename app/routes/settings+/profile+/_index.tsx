@@ -13,9 +13,12 @@ import { ErrorList, Field } from "~/components/forms.tsx";
 import { Icon } from "~/components/ui/icon.tsx";
 import { StatusButton } from "~/components/ui/status-button.tsx";
 import { requireUserId } from "~/utils/auth.server.ts";
-import { WorkerDB, WorkerDb } from "lib/db.ts";
+import { DB, WorkerDb } from "lib/db.ts";
 import { useDoubleCheck } from "~/utils/misc.ts";
-import { getAuthSessionStorage } from "~/utils/session.server.ts";
+import {
+  AuthSessionStorage,
+  getAuthSessionStorage,
+} from "~/utils/session.server.ts";
 import { NameSchema, UsernameSchema } from "~/utils/user-validation.ts";
 import { UserRepository } from "repositories/user";
 
@@ -26,11 +29,8 @@ const ProfileFormSchema = z.object({
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
-  const userId = await requireUserId(
-    getAuthSessionStorage(context.cloudflare.env),
-    db,
-    request
-  );
+
+  const userId = await requireUserId(context.cloudflare.env, db, request);
   const user = await UserRepository.getUser(db, { id: userId });
   if (!user) invariantResponse(user, "User not found", { status: 404 });
 
@@ -43,8 +43,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 type ProfileActionArgs = {
-  db: WorkerDB;
-  authSessionStorage: ReturnType<typeof getAuthSessionStorage>;
+  db: DB;
+  authSessionStorage: AuthSessionStorage;
   request: Request;
   userId: string;
   formData: FormData;
@@ -55,7 +55,8 @@ const deleteDataActionIntent = "delete-data";
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
   const authSessionStorage = getAuthSessionStorage(context.cloudflare.env);
-  const userId = await requireUserId(authSessionStorage, db, request);
+
+  const userId = await requireUserId(context.cloudflare.env, db, request);
   const formData = await request.formData();
   const intent = formData.get("intent");
   switch (intent) {

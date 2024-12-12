@@ -1,6 +1,6 @@
 import { redirect } from "@remix-run/cloudflare";
 import bcrypt from "bcryptjs";
-import { Person, WorkerDB } from "lib/db";
+import { DB, Person } from "lib/db";
 import { safeRedirect } from "remix-utils/safe-redirect";
 import { SessionRepository } from "repositories/session";
 import { UserRepository } from "repositories/user";
@@ -13,12 +13,8 @@ export const getSessionExpirationDate = () =>
 
 export const sessionKey = "sessionId";
 
-export async function getUserId(
-  authSessionStorage: ReturnType<typeof getAuthSessionStorage>,
-  db: WorkerDB,
-  request: Request
-) {
-  const authSession = await authSessionStorage.getSession(
+export async function getUserId(env: Env, db: DB, request: Request) {
+  const authSession = await getAuthSessionStorage(env).getSession(
     request.headers.get("cookie")
   );
   const sessionId = authSession.get(sessionKey);
@@ -27,7 +23,9 @@ export async function getUserId(
   if (!session) {
     throw redirect("/", {
       headers: {
-        "set-cookie": await authSessionStorage.destroySession(authSession),
+        "set-cookie": await getAuthSessionStorage(env).destroySession(
+          authSession
+        ),
       },
     });
   }
@@ -35,12 +33,12 @@ export async function getUserId(
 }
 
 export async function requireUserId(
-  authSessionStorage: ReturnType<typeof getAuthSessionStorage>,
-  db: WorkerDB,
+  env: Env,
+  db: DB,
   request: Request,
   { redirectTo }: { redirectTo?: string | null } = {}
 ) {
-  const userId = await getUserId(authSessionStorage, db, request);
+  const userId = await getUserId(env, db, request);
   if (!userId) {
     const requestUrl = new URL(request.url);
     redirectTo =
@@ -56,19 +54,15 @@ export async function requireUserId(
   return userId;
 }
 
-export async function requireAnonymous(
-  authSessionStorage: ReturnType<typeof getAuthSessionStorage>,
-  db: WorkerDB,
-  request: Request
-) {
-  const userId = await getUserId(authSessionStorage, db, request);
+export async function requireAnonymous(env: Env, db: DB, request: Request) {
+  const userId = await getUserId(env, db, request);
   if (userId) {
     throw redirect("/");
   }
 }
 
 export async function login(
-  db: WorkerDB,
+  db: DB,
   {
     username,
     password,
@@ -85,7 +79,7 @@ export async function login(
 }
 
 export async function signup(
-  db: WorkerDB,
+  db: DB,
   {
     email,
     username,
@@ -117,7 +111,7 @@ export async function signup(
 
 export async function logout(
   authSessionStorage: ReturnType<typeof getAuthSessionStorage>,
-  db: WorkerDB,
+  db: DB,
   {
     request,
     redirectTo = "/",
@@ -149,7 +143,7 @@ export async function getPasswordHash(password: string) {
 }
 
 export async function verifyUserPassword(
-  db: WorkerDB,
+  db: DB,
   where: { id: Person["id"] } | { username: Person["username"] },
   password: string
 ): Promise<{ id: Person["id"] } | null> {

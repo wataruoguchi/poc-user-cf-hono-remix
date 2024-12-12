@@ -8,7 +8,6 @@ import { Spacer } from "~/components/spacer.tsx";
 import { Icon } from "~/components/ui/icon.tsx";
 import { requireUserId } from "~/utils/auth.server.ts";
 import { cn } from "~/utils/misc.ts";
-import { getAuthSessionStorage } from "~/utils/session.server";
 import { useUser } from "~/utils/user.ts";
 
 export const BreadcrumbHandle = z.object({ breadcrumb: z.any() });
@@ -20,13 +19,11 @@ export const handle: BreadcrumbHandle = {
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
-  const userId = await requireUserId(
-    getAuthSessionStorage(context.cloudflare.env),
-    db,
-    request
-  );
+
+  const userId = await requireUserId(context.cloudflare.env, db, request);
   const user = await UserRepository.getUser(db, { id: userId });
   invariantResponse(user, "User not found", { status: 404 });
+
   return json({});
 }
 

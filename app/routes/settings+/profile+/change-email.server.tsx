@@ -6,18 +6,18 @@ import {
   type VerifyFunctionArgs,
 } from "../../../routes/_auth+/verify.server.ts";
 import { sendEmail } from "../../../utils/email.server.ts";
-import { getVerifySessionStorage } from "../../../utils/verification.server.ts";
+import { VerifySessionStorage } from "../../../utils/verification.server.ts";
 import { newEmailAddressSessionKey } from "./change-email.tsx";
-import { WorkerDB } from "lib/db.ts";
+import { DB } from "lib/db.ts";
 import { UserRepository } from "repositories/user.ts";
 
 export async function handleVerification(
   env: Env,
-  verifySessionStorage: ReturnType<typeof getVerifySessionStorage>,
-  db: WorkerDB,
+  verifySessionStorage: VerifySessionStorage,
+  db: DB,
   { request, submission }: VerifyFunctionArgs
 ) {
-  await requireRecentVerification(verifySessionStorage, db, request);
+  await requireRecentVerification(env, db, request);
   invariant(
     submission.status === "success",
     "Submission should be successful by now"

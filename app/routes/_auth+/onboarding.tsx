@@ -29,7 +29,7 @@ import {
   UsernameSchema,
 } from "~/utils/user-validation";
 import { getVerifySessionStorage } from "~/utils/verification.server";
-import { WorkerDb, WorkerDB } from "../../../lib/db";
+import { WorkerDb, DB } from "../../../lib/db";
 import { UserRepository } from "repositories/user";
 
 export const onboardingEmailSessionKey = "onboardingEmail";
@@ -47,14 +47,9 @@ const SignupFormSchema = z
   })
   .and(PasswordAndConfirmPasswordSchema);
 
-async function requireOnboardingEmail(
-  db: WorkerDB,
-  authSessionStorage: ReturnType<typeof getAuthSessionStorage>,
-  verifySessionStorage: ReturnType<typeof getVerifySessionStorage>,
-  request: Request
-) {
-  await requireAnonymous(authSessionStorage, db, request);
-  const verifySession = await verifySessionStorage.getSession(
+async function requireOnboardingEmail(env: Env, db: DB, request: Request) {
+  await requireAnonymous(env, db, request);
+  const verifySession = await getVerifySessionStorage(env).getSession(
     request.headers.get("cookie")
   );
   const email = verifySession.get(onboardingEmailSessionKey);
@@ -66,10 +61,10 @@ async function requireOnboardingEmail(
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
+
   const email = await requireOnboardingEmail(
+    context.cloudflare.env,
     db,
-    getAuthSessionStorage(context.cloudflare.env),
-    getVerifySessionStorage(context.cloudflare.env),
     request
   );
   return json({ email });
@@ -77,12 +72,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = await WorkerDb.getInstance(context.cloudflare.env);
-  const authSessionStorage = getAuthSessionStorage(context.cloudflare.env);
-  const verifySessionStorage = getVerifySessionStorage(context.cloudflare.env);
+
   const email = await requireOnboardingEmail(
+    context.cloudflare.env,
     db,
-    authSessionStorage,
-    verifySessionStorage,
     request
   );
   const formData = await request.formData();
@@ -119,21 +112,28 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const { session, remember, redirectTo } = submission.value;
 
-  const authSession = await authSessionStorage.getSession(
-    request.headers.get("cookie")
-  );
+  const authSession = await getAuthSessionStorage(
+    context.cloudflare.env
+  ).getSession(request.headers.get("cookie"));
   authSession.set(sessionKey, session.id);
-  const verifySession = await verifySessionStorage.getSession();
+  const verifySession = await getVerifySessionStorage(
+    context.cloudflare.env
+  ).getSession();
   const headers = new Headers();
   headers.append(
     "set-cookie",
-    await authSessionStorage.commitSession(authSession, {
-      expires: remember ? session.expires_at : undefined,
-    })
+    await getAuthSessionStorage(context.cloudflare.env).commitSession(
+      authSession,
+      {
+        expires: remember ? session.expires_at : undefined,
+      }
+    )
   );
   headers.append(
     "set-cookie",
-    await verifySessionStorage.destroySession(verifySession)
+    await getVerifySessionStorage(context.cloudflare.env).destroySession(
+      verifySession
+    )
   );
 
   return redirect(safeRedirect(redirectTo), { headers });

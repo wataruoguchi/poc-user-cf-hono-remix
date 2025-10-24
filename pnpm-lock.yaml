@@ -60,11 +60,11 @@ dependencies:
     specifier: ^4.2.0
     version: 4.2.0
   hono:
-    specifier: ^4.6.9
-    version: 4.6.9
+    specifier: ^4.10.3
+    version: 4.10.3
   hono-remix-adapter:
     specifier: ^0.4.1
-    version: 0.4.1(@remix-run/cloudflare@2.13.1)(hono@4.6.9)(typescript@5.1.6)(wrangler@3.86.1)(zod@3.23.8)
+    version: 0.4.1(@remix-run/cloudflare@2.13.1)(hono@4.10.3)(typescript@5.1.6)(wrangler@3.86.1)(zod@3.23.8)
   isbot:
     specifier: ^4.1.0
     version: 4.1.0
@@ -108,7 +108,7 @@ devDependencies:
     version: 9.2.0
   '@hono/vite-dev-server':
     specifier: ^0.16.0
-    version: 0.16.0(hono@4.6.9)(wrangler@3.86.1)
+    version: 0.16.0(hono@4.10.3)(wrangler@3.86.1)
   '@remix-run/dev':
     specifier: ^2.13.1
     version: 2.13.1(@remix-run/react@2.13.1)(@types/node@24.9.1)(typescript@5.1.6)(vite@5.4.21)(wrangler@3.86.1)
@@ -1460,25 +1460,25 @@ packages:
     resolution: {integrity: sha512-kym7SodPp8/wloecOpcmSnWJsK7M0E5Wg8UcFA+uO4B9s5d0ywXOEro/8HM9x0rW+TljRzul/14UYz3TleT3ig==}
     dev: false
 
-  /@hono/node-server@1.13.5(hono@4.6.9):
+  /@hono/node-server@1.13.5(hono@4.10.3):
     resolution: {integrity: sha512-lSo+CFlLqAFB4fX7ePqI9nauEn64wOfJHAfc9duYFTvAG3o416pC0nTGeNjuLHchLedH+XyWda5v79CVx1PIjg==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
     dependencies:
-      hono: 4.6.9
+      hono: 4.10.3
     dev: true
 
-  /@hono/node-server@1.13.6(hono@4.6.9):
+  /@hono/node-server@1.13.6(hono@4.10.3):
     resolution: {integrity: sha512-Y2ivw4UmLIBKfzvkFgcsrhc0GLn272diGjlnKOF9T1OiY6ud4RaVO8FKEnifNkuU7meOeCU371/8fmhgeYf7Lw==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
     dependencies:
-      hono: 4.6.9
+      hono: 4.10.3
     dev: false
 
-  /@hono/vite-dev-server@0.16.0(hono@4.6.9)(wrangler@3.86.1):
+  /@hono/vite-dev-server@0.16.0(hono@4.10.3)(wrangler@3.86.1):
     resolution: {integrity: sha512-zGPaYY7DyDr33id677fUuaPiV2qQJoPrxv+nrcLc7g8M9PkcvlV8kO2XRkrwZT64rUSBxyWOuGN3vEIFiH9l0w==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
@@ -1491,13 +1491,13 @@ packages:
       wrangler:
         optional: true
     dependencies:
-      '@hono/node-server': 1.13.5(hono@4.6.9)
-      hono: 4.6.9
+      '@hono/node-server': 1.13.5(hono@4.10.3)
+      hono: 4.10.3
       minimatch: 9.0.5
       wrangler: 3.86.1(@cloudflare/workers-types@4.20241106.0)
     dev: true
 
-  /@hono/vite-dev-server@0.17.0(hono@4.6.9)(wrangler@3.86.1):
+  /@hono/vite-dev-server@0.17.0(hono@4.10.3)(wrangler@3.86.1):
     resolution: {integrity: sha512-EvGOIj1MoY9uV94onXXz88yWaTxzUK+Mv8LiIEsR/9eSFoVUnHVR0B7l7iNIsxfHYRN7tbPDMWBSnD2RQun3yw==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
@@ -1510,8 +1510,8 @@ packages:
       wrangler:
         optional: true
     dependencies:
-      '@hono/node-server': 1.13.6(hono@4.6.9)
-      hono: 4.6.9
+      '@hono/node-server': 1.13.6(hono@4.10.3)
+      hono: 4.10.3
       minimatch: 9.0.5
       wrangler: 3.86.1(@cloudflare/workers-types@4.20241106.0)
     dev: false
@@ -5113,14 +5113,14 @@ packages:
     resolution: {integrity: sha512-IScLbePpkvO846sIwOtOTDjutRMWdXdJmXdMvk6gCBHxFO8d+QKOQedyZSxFTTFYRSmlgSTDtXqqq4pcenBXLQ==}
     dev: true
 
-  /hono-remix-adapter@0.4.1(@remix-run/cloudflare@2.13.1)(hono@4.6.9)(typescript@5.1.6)(wrangler@3.86.1)(zod@3.23.8):
+  /hono-remix-adapter@0.4.1(@remix-run/cloudflare@2.13.1)(hono@4.10.3)(typescript@5.1.6)(wrangler@3.86.1)(zod@3.23.8):
     resolution: {integrity: sha512-xQ8rXs4I4LMAdwypndx1HVhh5pVx2Jo5Unil7oJWvw90sNfkDk6QUbTBX2g4Qx9pzzfQeuv7wjak7MPYIbKJ2w==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       hono: '*'
     dependencies:
-      '@hono/vite-dev-server': 0.17.0(hono@4.6.9)(wrangler@3.86.1)
-      hono: 4.6.9
+      '@hono/vite-dev-server': 0.17.0(hono@4.10.3)(wrangler@3.86.1)
+      hono: 4.10.3
       remix-hono: 0.0.16(@remix-run/cloudflare@2.13.1)(typescript@5.1.6)(zod@3.23.8)
     transitivePeerDependencies:
       - '@remix-run/cloudflare'
@@ -5132,8 +5132,8 @@ packages:
       - zod
     dev: false
 
-  /hono@4.6.9:
-    resolution: {integrity: sha512-p/pN5yZLuZaHzyAOT2nw2/Ud6HhJHYmDNGH6Ck1OWBhPMVeM1r74jbCRwNi0gyFRjjbsGgoHbOyj7mT1PDNbTw==}
+  /hono@4.10.3:
+    resolution: {integrity: sha512-2LOYWUbnhdxdL8MNbNg9XZig6k+cZXm5IjHn2Aviv7honhBMOHb+jxrKIeJRZJRmn+htUCKhaicxwXuUDlchRA==}
     engines: {node: '>=16.9.0'}
 
   /hosted-git-info@6.1.1:
@@ -7379,7 +7379,7 @@ packages:
     dependencies:
       '@remix-run/cloudflare': 2.13.1(@cloudflare/workers-types@4.20241106.0)(typescript@5.1.6)
       '@remix-run/server-runtime': 2.14.0(typescript@5.1.6)
-      hono: 4.6.9
+      hono: 4.10.3
       pretty-cache-header: 1.0.0
       zod: 3.23.8
     transitivePeerDependencies:

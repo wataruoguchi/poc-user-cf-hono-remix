@@ -40,7 +40,7 @@
     "hono": "^4.6.9",
     "hono-remix-adapter": "^0.4.1",
     "isbot": "^4.1.0",
-    "kysely": "^0.27.4",
+    "kysely": "^0.28.11",
     "kysely-postgres-js": "^2.0.0",
     "postgres": "^3.4.5",
     "react": "^18.2.0",
